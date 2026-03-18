@@ -108,6 +108,14 @@ export async function verifyEmail(req, res) {
       });
     }
 
+    if (user.verified) {
+      return res.send(`
+        <h2>⚠️ Already Verified</h2>
+        <p>Your email is already verified.</p>
+        <a href="http://localhost:3000/login">Go to Login</a>
+      `);
+    }
+
     user.verified = true;
     await user.save();
 
@@ -254,23 +262,117 @@ export async function login(req, res) {
   });
 }
 
-export async function getMe(req,res){
-    const userId = req.user.id
+export async function getMe(req, res) {
+  const userId = req.user.id;
 
-    const user = await userModel.findById(userId).select("-password");
+  const user = await userModel.findById(userId).select("-password");
 
-    if (!user) {
-        return res.status(404).json({
-            message :"User not found",
-            success : false,
-            err : "User not found"
-        })
-        
-    }
+  if (!user) {
+    return res.status(404).json({
+      message: "User not found",
+      success: false,
+      err: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    message: "User details fetched successfully.",
+    success: true,
+    user,
+  });
+}
+
+export async function resendVerificationEmail(req, res) {
+  const { email } = req.body;
+
+  const user = await userModel.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({
+      message: "User not found",
+      success: false,
+      err: "User not found",
+    });
+  }
+
+  if (user.verified) {
+    return res.status(400).json({
+      message: "User already verified",
+      success: false,
+      err: "user already verified",
+    });
+  }
+
+  const token = jwt.sign(
+    {
+      email: user.email,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" },
+  );
+
+  const html = `
+<div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
+  <div style="max-width:600px; margin:auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+
+    <h2 style="color:#333;">Hey ${user.username}, 👋</h2>
+
+    <p style="color:#555; line-height:1.6;">
+      Looks like you requested a new verification email for your 
+      <strong>Perplexity</strong> account.
+    </p>
+
+    <p style="color:#555; line-height:1.6;">
+      No worries — just click the button below to verify your email address.
+    </p>
+
+    <div style="text-align:center; margin:30px 0;">
+      <a 
+        href="http://localhost:3000/api/auth/verify-email?token=${token}"
+        style="
+          background:#4f46e5;
+          color:white;
+          padding:12px 24px;
+          text-decoration:none;
+          border-radius:6px;
+          font-weight:bold;
+          display:inline-block;
+        ">
+        Verify Email
+      </a>
+    </div>
+
+    <p style="color:#777; font-size:14px;">
+      If you didn’t request this, you can safely ignore this email.
+    </p>
+
+    <hr style="border:none; border-top:1px solid #eee; margin:30px 0;">
+
+    <p style="color:#999; font-size:13px;">
+      Best regards,<br>
+      <strong>Team Perplexity</strong>
+    </p>
+
+  </div>
+</div>
+`;
+
+  try {
+    await sendEmail({
+      to: email,
+      subject: "Resend Verification - Perplexity",
+      html: html,
+    });
 
     res.status(200).json({
-        message : "User details fetched successfully.",
-        success : true,
-        user
-    })
+      message: "Verification email resent successfully",
+      success: true,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to send email",
+      success: false,
+      err: err.message,
+    });
+  }
 }
