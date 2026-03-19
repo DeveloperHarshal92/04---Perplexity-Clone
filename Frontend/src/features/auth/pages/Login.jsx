@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
 import { useAuth } from "../hook/useAuth";
 import { useSelector } from 'react-redux';
-import Dashboard from "../../chat/pages/Dashboard";
 
 
 export default function Login() {
