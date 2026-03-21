@@ -35,7 +35,7 @@ export async function sendMessage(req, res) {
 
   res.status(201).json({
     title,
-    chat,
+    chat: chat || { _id: chatId },
     aiMessage,
   });
 }
