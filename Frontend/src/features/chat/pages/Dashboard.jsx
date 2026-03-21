@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useChat } from "../hooks/useChat";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const Dashboard = () => {
   console.log("DASHBOARD RENDERED");
@@ -17,6 +19,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     chat.initializeSocketConnection();
+    chat.handleGetChats();
   }, []);
 
   const handleSubmitMessage = (event) => {
@@ -34,6 +37,10 @@ const Dashboard = () => {
     setChatInput("");
   };
 
+  const openChat = (chatId) => {
+    chat.handleOpenChat(chatId, chats);
+  };
+
   return (
     <div className="flex h-screen bg-white dark:bg-[#1E1E24] text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
       {/* LEFT SIDEBAR - Persistent Dark Theme */}
@@ -49,15 +56,30 @@ const Dashboard = () => {
         </div>
 
         <nav className="flex-1 px-3 space-y-1 text-sm text-gray-400 overflow-y-auto">
-          <div className="px-3 py-2 rounded-lg bg-gray-800 text-white cursor-pointer">
-            Quantum Computing 101
-          </div>
-          <div className="px-3 py-2 rounded-lg hover:bg-gray-800 hover:text-white cursor-pointer transition-colors">
-            React Architecture
-          </div>
-          <div className="px-3 py-2 rounded-lg hover:bg-gray-800 hover:text-white cursor-pointer transition-colors">
-            Tailwind Best Practices
-          </div>
+          {Object.values(chats).map((chatItem, index) => (
+            <div
+              onClick={() => openChat(chatItem.id)}
+              key={index}
+              className="px-3 py-2 rounded-lg bg-gray-800 text-white cursor-pointer hover:bg-gray-700 transition-colors"
+            >
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  p: ({ children }) => <p className="truncate">{children}</p>,
+                  strong: ({ children }) => (
+                    <span className="font-semibold">{children}</span>
+                  ),
+                  code: ({ children }) => (
+                    <span className="bg-white/10 px-1 rounded text-xs">
+                      {children}
+                    </span>
+                  ),
+                }}
+              >
+                {chatItem.title || "New Chat"}
+              </ReactMarkdown>
+            </div>
+          ))}
         </nav>
 
         {/* User Profile mapped from Redux */}
@@ -107,24 +129,48 @@ const Dashboard = () => {
         {/* CHAT FEED */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-10 pb-32">
           <div className="max-w-3xl mx-auto space-y-10">
-            {chats[currentChatId]?.messages.map((message) =>
+            {chats[currentChatId]?.messages?.map((message, index) =>
               message.role === "user" ? (
                 /* USER MESSAGE */
-                <div key={message.id} className="flex justify-end">
+                <div key={index} className="flex justify-end">
                   <div className="bg-blue-950 text-white px-5 py-3 rounded-2xl rounded-br-none shadow-md max-w-[85%] text-sm md:text-base">
                     {message.content}
                   </div>
                 </div>
               ) : (
-                /* AI MESSAGE */
-                <div key={message.id} className="flex items-start gap-3">
+                /* AI MESSAGE (Markdown Rendered) */
+                <div key={index} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-emerald-700 flex items-center justify-center text-white text-xs font-bold">
                     AI
                   </div>
-                  <div className="flex-1">
-                    <div className="text-white/90 text-sm md:text-base leading-relaxed">
+
+                  <div className="flex-1 text-white/90 text-sm md:text-base leading-relaxed">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        p: ({ children }) => (
+                          <p className="mb-2 last:mb-0">{children}</p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc pl-5 mb-2">{children}</ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal pl-5 mb-2">{children}</ol>
+                        ),
+                        code: ({ inline, children }) =>
+                          inline ? (
+                            <code className="bg-white/10 px-1 py-0.5 rounded">
+                              {children}
+                            </code>
+                          ) : (
+                            <pre className="bg-black/40 p-3 rounded-xl overflow-x-auto mb-2">
+                              <code>{children}</code>
+                            </pre>
+                          ),
+                      }}
+                    >
                       {message.content}
-                    </div>
+                    </ReactMarkdown>
                   </div>
                 </div>
               ),
@@ -154,12 +200,12 @@ const Dashboard = () => {
                 className="w-full bg-transparent p-3 outline-none resize-none text-gray-800 dark:text-gray-100 placeholder-gray-400 scrollbar-hide"
                 placeholder="Ask follow-up..."
                 rows="1"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmitMessage(e);
-                  }
-                }}
+                // onKeyDown={(e) => {
+                //   if (e.key === "Enter" && !e.shiftKey) {
+                //     e.preventDefault();
+                //     handleSubmitMessage(e);
+                //   }
+                // }}
               />
 
               <div className="flex justify-between items-center px-2 pb-1 border-t border-gray-100 dark:border-gray-700/50 pt-2">
