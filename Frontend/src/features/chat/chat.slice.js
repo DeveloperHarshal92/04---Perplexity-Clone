@@ -24,16 +24,7 @@ const chatSlice = createSlice({
     },
     addMessages: (state, action) => {
       const { chatId, messages } = action.payload;
-
-      if (!state.chats[chatId]) {
-        console.error("CHAT NOT FOUND:", chatId);
-        return;
-      }
-
-      state.chats[chatId].messages = [
-        ...state.chats[chatId].messages,
-        ...messages,
-      ];
+      state.chats[chatId].messages.push(...messages);
     },
     setChats: (state, action) => {
       state.chats = action.payload;
@@ -51,12 +42,30 @@ const chatSlice = createSlice({
 });
 
 export const {
-  createNewChat,
-  addNewMessage,
-  addMessages,
   setChats,
   setCurrentChatId,
   setLoading,
   setError,
+  createNewChat,
+  addNewMessage,
+  addMessages,
 } = chatSlice.actions;
 export default chatSlice.reducer;
+
+// chats = {
+//     "docker and AWS": {
+//         messages: [
+//             {
+//                 role: "user",
+//                 content: "What is docker?"
+//             },
+//             {
+//                 role: "ai",
+//                 content: "Docker is a platform that allows developers to automate the deployment of applications inside lightweight, portable containers. It provides an efficient way to package and distribute software, ensuring consistency across different environments."
+//             }
+//         ],
+//         id: "docker and AWS",
+//         lastUpdated: "2024-06-20T12:34:56Z",
+//     }
+
+// }

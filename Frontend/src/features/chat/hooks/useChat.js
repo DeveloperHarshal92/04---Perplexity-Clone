@@ -5,63 +5,48 @@ import {
   getMessages,
   deleteChat,
 } from "../service/chat.api";
-import { useDispatch } from "react-redux";
 import {
-  addMessages,
-  addNewMessage,
-  createNewChat,
   setChats,
   setCurrentChatId,
+  setError,
   setLoading,
+  createNewChat,
+  addNewMessage,
+  addMessages,
 } from "../chat.slice";
+import { useDispatch } from "react-redux";
 
 export const useChat = () => {
   const dispatch = useDispatch();
 
   async function handleSendMessage({ message, chatId }) {
-    try {
-      dispatch(setLoading(true));
-
-      const data = await sendMessage({ message, chatId });
-
-      console.log("API SUCCESS:", data);
-
-      const { chat, aiMessage } = data;
-
-      if (!chatId) {
-        dispatch(
-          createNewChat({
-            chatId: chat._id,
-            title: chat.title,
-          }),
-        );
-      }
-
+    dispatch(setLoading(true));
+    const data = await sendMessage({ message, chat : chatId });
+    const { chat, aiMessage } = data;
+    const activeChatId = chatId || chat._id
+    if (!chatId) {
       dispatch(
-        addNewMessage({
-          chatId: chatId || chat._id,
-          content: message,
-          role: "user",
+        createNewChat({
+          chatId: chat._id,
+          title: chat.title,
         }),
       );
-
-      dispatch(
-        addNewMessage({
-          chatId: chatId || chat._id,
-          content: aiMessage.content,
-          role: aiMessage.role,
-        }),
-      );
-
-      dispatch(setCurrentChatId(chat._id));
-    } catch (err) {
-      console.error("API FAILED:", err.response?.data || err.message);
-
-      // 👇 show something in UI instead of silence
-      alert("AI is rate limited. Try again in a few seconds.");
-    } finally {
-      dispatch(setLoading(false));
     }
+    dispatch(
+      addNewMessage({
+        chatId: activeChatId,
+        content: message,
+        role: "user",
+      }),
+    );
+    dispatch(
+      addNewMessage({
+        chatId: activeChatId,
+        content: aiMessage.content,
+        role: aiMessage.role,
+      }),
+    );
+    dispatch(setCurrentChatId(activeChatId));
   }
 
   async function handleGetChats() {
@@ -85,7 +70,8 @@ export const useChat = () => {
   }
 
   async function handleOpenChat(chatId, chats) {
-    if (!chats[chatId]?.messages || chats[chatId].messages.length === 0) {
+
+    if (chats[chatId]?.messages.length === 0) {
       const data = await getMessages(chatId);
       const { messages } = data;
 
@@ -101,7 +87,6 @@ export const useChat = () => {
         }),
       );
     }
-
     dispatch(setCurrentChatId(chatId));
   }
 

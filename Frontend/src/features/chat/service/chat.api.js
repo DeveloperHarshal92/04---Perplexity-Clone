@@ -5,8 +5,8 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export const sendMessage = async ({ message, chat: chatId }) => {
-  const response = await api.post("/api/chats/message", { message, chatId });
+export const sendMessage = async ({ message,  chat }) => {
+  const response = await api.post("/api/chats/message", { message,chat });
   return response.data;
 };
 

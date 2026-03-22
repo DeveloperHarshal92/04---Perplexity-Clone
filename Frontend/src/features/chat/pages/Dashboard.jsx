@@ -1,39 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useChat } from "../hooks/useChat";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 const Dashboard = () => {
-  console.log("DASHBOARD RENDERED");
   const chat = useChat();
-
   const [chatInput, setChatInput] = useState("");
-  // const [userMessage, setUserMessage] = useState("");
-
-  // const { user } = useSelector((state) => state.auth);
-  // console.log("User in Dashboard: ", user);
-
+  const activeChatRef = useRef(null);
   const chats = useSelector((state) => state.chat.chats);
   const currentChatId = useSelector((state) => state.chat.currentChatId);
+  console.log("Sending chatId:", currentChatId);
+
 
   useEffect(() => {
     chat.initializeSocketConnection();
     chat.handleGetChats();
   }, []);
 
-  const handleSubmitMessage = (event) => {
+  const handleSubmitMessage = async (event) => {
     event.preventDefault();
-    console.log("HANDLE SUBMIT CALLED");
 
     const trimmedMessage = chatInput.trim();
-    if (!trimmedMessage) {
-      console.log("EMPTY MESSAGE");
-      return;
-    }
-    console.log("SENDING:", trimmedMessage);
+    if (!trimmedMessage) return;
 
-    chat.handleSendMessage({ message: trimmedMessage, chatId: currentChatId });
+    const chatIdToUse = activeChatRef.current || currentChatId;
+
+    const data = await chat.handleSendMessage({
+      message: trimmedMessage,
+      chatId: chatIdToUse,
+    });
+
+    if (!activeChatRef.current && data?.chat?._id) {
+      activeChatRef.current = data.chat._id;
+    }
     setChatInput("");
   };
 
@@ -127,7 +127,7 @@ const Dashboard = () => {
         </header>
 
         {/* CHAT FEED */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-10 pb-32">
+        <div className="messages flex-1 overflow-y-auto px-4 sm:px-6 py-10 pb-32 mb-24">
           <div className="max-w-3xl mx-auto space-y-10">
             {chats[currentChatId]?.messages?.map((message, index) =>
               message.role === "user" ? (
