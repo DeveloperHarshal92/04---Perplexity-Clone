@@ -100,7 +100,7 @@ const Dashboard = () => {
         {/* HEADER */}
         <header className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white/50 dark:bg-[#1E1E24]/50 backdrop-blur-xl z-10">
           <div className="flex items-center gap-4">
-            <h2 className="font-semibold text-lg">Quantum Computing 101</h2>
+            <h2 className="font-semibold text-lg">{chats[currentChatId]?.title || "New Chat"}</h2>
           </div>
 
           <div className="flex items-center gap-2">
