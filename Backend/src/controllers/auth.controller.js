@@ -35,49 +35,48 @@ export async function register(req, res) {
     to: email,
     subject: "Welcome to Perplexity",
     html: `
-<div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
-  <div style="max-width:600px; margin:auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+     <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
+       <div style="max-width:600px; margin:auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+          <h2 style="color:#333;">Welcome to Perplexity, ${username} 👋</h2>
 
-    <h2 style="color:#333;">Welcome to Perplexity, ${username} 👋</h2>
+          <p style="color:#555; line-height:1.6;">
+            Thank you for registering with <strong>Perplexity</strong>.  
+            We're excited to have you on board.
+          </p>
 
-    <p style="color:#555; line-height:1.6;">
-      Thank you for registering with <strong>Perplexity</strong>.  
-      We're excited to have you on board.
-    </p>
+          <p style="color:#555; line-height:1.6;">
+            Please verify your email address by clicking the button below.
+          </p>
 
-    <p style="color:#555; line-height:1.6;">
-      Please verify your email address by clicking the button below.
-    </p>
+          <div style="text-align:center; margin:30px 0;">
+            <a 
+              href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}"
+              style="
+                background:#4f46e5;
+                color:white;
+                padding:12px 24px;
+                text-decoration:none;
+                border-radius:6px;
+                font-weight:bold;
+                display:inline-block;
+              ">
+              Verify Email Address
+            </a>
+          </div>
 
-    <div style="text-align:center; margin:30px 0;">
-      <a 
-        href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}"
-        style="
-          background:#4f46e5;
-          color:white;
-          padding:12px 24px;
-          text-decoration:none;
-          border-radius:6px;
-          font-weight:bold;
-          display:inline-block;
-        ">
-        Verify Email Address
-      </a>
-    </div>
+          <p style="color:#777; font-size:14px;">
+            If you did not create this account, you can safely ignore this email.
+          </p>
 
-    <p style="color:#777; font-size:14px;">
-      If you did not create this account, you can safely ignore this email.
-    </p>
+          <hr style="border:none; border-top:1px solid #eee; margin:30px 0;">
 
-    <hr style="border:none; border-top:1px solid #eee; margin:30px 0;">
+          <p style="color:#999; font-size:13px;">
+            Best regards,<br>
+            <strong>Team Perplexity</strong>
+          </p>
 
-    <p style="color:#999; font-size:13px;">
-      Best regards,<br>
-      <strong>Team Perplexity</strong>
-    </p>
-
-  </div>
-</div>
+        </div>
+      </div>
 `,
   });
 

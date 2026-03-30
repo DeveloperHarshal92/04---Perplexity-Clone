@@ -21,9 +21,9 @@ export const useChat = () => {
 
   async function handleSendMessage({ message, chatId }) {
     dispatch(setLoading(true));
-    const data = await sendMessage({ message, chat : chatId });
+    const data = await sendMessage({ message, chat: chatId });
     const { chat, aiMessage } = data;
-    const activeChatId = chatId || chat._id
+    const activeChatId = chatId || chat._id;
     if (!chatId) {
       dispatch(
         createNewChat({
@@ -70,7 +70,6 @@ export const useChat = () => {
   }
 
   async function handleOpenChat(chatId, chats) {
-
     if (chats[chatId]?.messages.length === 0) {
       const data = await getMessages(chatId);
       const { messages } = data;
@@ -90,10 +89,15 @@ export const useChat = () => {
     dispatch(setCurrentChatId(chatId));
   }
 
+  function handleNewChat() {
+    dispatch(setCurrentChatId(null));
+  }
+
   return {
     initializeSocketConnection,
     handleSendMessage,
     handleGetChats,
     handleOpenChat,
+    handleNewChat,
   };
 };
