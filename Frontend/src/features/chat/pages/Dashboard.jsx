@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useChat } from "../hooks/useChat";
+import { Toaster } from "react-hot-toast";
 
 import AmbientBackground from "../components/AmbientBackground";
 import Sidebar from "../components/Sidebar";
@@ -11,7 +12,7 @@ import ChatInput from "../components/ChatInput";
 const Dashboard = () => {
   const chat = useChat();
   const [chatInput, setChatInput] = useState("");
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(true);          // ← single source of truth
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
   const activeChatRef = useRef(null);
@@ -31,16 +32,11 @@ const Dashboard = () => {
     if (!trimmedMessage) return;
 
     const chatIdToUse = activeChatRef.current || currentChatId;
-
-    const data = await chat.handleSendMessage({
-      message: trimmedMessage,
-      chatId: chatIdToUse,
-    });
+    const data = await chat.handleSendMessage({ message: trimmedMessage, chatId: chatIdToUse });
 
     if (!activeChatRef.current && data?.chat?._id) {
       activeChatRef.current = data.chat._id;
     }
-
     setChatInput("");
     setAttachedFiles([]);
   };
@@ -57,13 +53,18 @@ const Dashboard = () => {
     setSidebarOpen(false);
   };
 
+  // ── Delete: clear activeChatRef if the deleted thread was active ──
+  const handleDeleteChat = (chatId) => {
+    if (activeChatRef.current === chatId) {
+      activeChatRef.current = null;
+    }
+    chat.handleDeleteChat(chatId);
+  };
+
   const handleFileAttach = (files) => {
     const newFiles = Array.from(files).map((f) => ({
       id: Math.random().toString(36).slice(2),
-      name: f.name,
-      size: f.size,
-      type: f.type,
-      file: f,
+      name: f.name, size: f.size, type: f.type, file: f,
     }));
     setAttachedFiles((prev) => [...prev, ...newFiles]);
   };
@@ -73,10 +74,29 @@ const Dashboard = () => {
   };
 
   const currentMessages = chats[currentChatId]?.messages || [];
-  const currentTitle = chats[currentChatId]?.title;
+  const currentTitle    = chats[currentChatId]?.title;
+
+  // Root background switches with isDark
+  const rootBg    = isDark ? "#080808" : "#f5f5f2";
+  const rootColor = isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.80)";
 
   return (
     <>
+      {/* Toast notifications */}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: isDark ? "#1a1a1a" : "#ffffff",
+            color:      isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.75)",
+            border:     `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.09)"}`,
+            borderRadius: "10px",
+            fontSize: "13px",
+            fontFamily: "'DM Sans', sans-serif",
+          },
+        }}
+      />
+
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
 
@@ -87,41 +107,41 @@ const Dashboard = () => {
         .messages-feed::-webkit-scrollbar { display: none; }
         .scrollbar-thin::-webkit-scrollbar        { width: 4px; }
         .scrollbar-thin::-webkit-scrollbar-track  { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb  { background: rgba(255,255,255,0.08); border-radius: 99px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb  { background: rgba(128,128,128,0.2); border-radius: 99px; }
 
         .sidebar-overlay {
           position: fixed; inset: 0; z-index: 40;
-          background: rgba(0,0,0,0.6);
+          background: rgba(0,0,0,0.5);
           backdrop-filter: blur(4px);
         }
       `}</style>
 
       <div
         className="font-sans-dm flex h-screen overflow-hidden relative"
-        style={{ background: "#080808", color: "rgba(255,255,255,0.85)" }}
+        style={{ background: rootBg, color: rootColor, transition: "background 0.3s ease, color 0.3s ease" }}
       >
-        <AmbientBackground />
+        {/* Ambient decorative layer — receives isDark */}
+        <AmbientBackground isDark={isDark} />
 
-        {/* Sidebar overlay backdrop */}
+        {/* Sidebar backdrop */}
         {sidebarOpen && (
-          <div
-            className="sidebar-overlay"
-            onClick={() => setSidebarOpen(false)}
-          />
+          <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
         )}
 
-        {/* Sidebar — always overlay, slides in from left */}
+        {/* Sidebar — receives isDark + onDeleteChat */}
         <Sidebar
           chats={chats}
           currentChatId={currentChatId}
           onOpenChat={openChat}
           onNewChat={handleNewChat}
+          onDeleteChat={handleDeleteChat}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          isDark={isDark}
         />
 
-        {/* Main */}
         <main className="relative z-10 flex-1 flex flex-col min-w-0 w-full">
+          {/* Header — receives isDark + onToggleTheme */}
           <ChatHeader
             title={currentTitle}
             isLoading={isLoading}
@@ -131,8 +151,14 @@ const Dashboard = () => {
             sidebarOpen={sidebarOpen}
           />
 
-          <ChatFeed messages={currentMessages} isLoading={isLoading} />
+          {/* Feed — receives isDark */}
+          <ChatFeed
+            messages={currentMessages}
+            isLoading={isLoading}
+            isDark={isDark}
+          />
 
+          {/* Input — receives isDark */}
           <ChatInput
             value={chatInput}
             onChange={setChatInput}
@@ -140,6 +166,7 @@ const Dashboard = () => {
             attachedFiles={attachedFiles}
             onFileAttach={handleFileAttach}
             onRemoveFile={handleRemoveFile}
+            isDark={isDark}
           />
         </main>
       </div>
@@ -147,4 +174,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Dashboard;           
