@@ -6,10 +6,11 @@ import {
   sendMessage,
 } from "../controllers/chat.controller.js";
 import { authUser } from "../middlewares/auth.middleware.js";
+import { upload } from "../middlewares/upload.middleware.js";
 
 const chatRouter = Router();
 
-chatRouter.post("/message", authUser, sendMessage);
+chatRouter.post("/message", authUser,upload.single("file"),sendMessage);
 
 chatRouter.get("/", authUser, getChats);
 

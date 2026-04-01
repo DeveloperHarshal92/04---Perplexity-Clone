@@ -9,12 +9,30 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: true
+      default: ""
     },
     role: {
       type: String,
       enum: ["user", "ai"],
       required: true
+    },
+    aiContext: {
+      type: String,
+      default: ""
+    },
+    userFile: {
+      name: {
+        type: String,
+        default: null
+      },
+      type: {
+        type: String,
+        default: null
+      },
+      url: {
+        type: String,
+        default: null
+      }
     }
   },
   {

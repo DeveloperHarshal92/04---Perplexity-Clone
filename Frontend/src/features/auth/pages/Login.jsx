@@ -3,7 +3,28 @@ import { Link, Navigate, useNavigate } from "react-router";
 import { useAuth } from "../hook/useAuth";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight, Zap } from "lucide-react";
+import {
+  Sparkles,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Zap,
+} from "lucide-react";
+
+const PerplexityLogo = ({ size = 17, className = "" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    className={className}
+    fill="currentColor"
+  >
+    <path d="M5.73486 2L11.4299 7.24715V7.24595V2.01211H12.5385V7.27063L18.2591 2V7.98253H20.6078V16.6118H18.2663V21.9389L12.5385 16.9066V21.9967H11.4299V16.9896L5.74131 22V16.6118H3.39258V7.98253H5.73486V2ZM10.5942 9.0776H4.50118V15.5167H5.73992V13.4856L10.5942 9.0776ZM6.84986 13.9715V19.5565L11.4299 15.5225V9.81146L6.84986 13.9715ZM12.5704 15.4691L17.1577 19.4994V16.6118H17.1518V13.9663L12.5704 9.80608V15.4691ZM18.2663 15.5167H19.4992V9.0776H13.4516L18.2663 13.4399V15.5167ZM17.1505 7.98253V4.51888L13.3911 7.98253H17.1505ZM10.6028 7.98253L6.84346 4.51888V7.98253H10.6028Z" />
+  </svg>
+);
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -45,11 +66,15 @@ export default function Login() {
         <div className="pointer-events-none fixed inset-0 overflow-hidden">
           <div
             className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl opacity-20"
-            style={{ background: "radial-gradient(circle, #F59E0B33, transparent 70%)" }}
+            style={{
+              background: "radial-gradient(circle, #F59E0B33, transparent 70%)",
+            }}
           />
           <div
             className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full blur-3xl opacity-10"
-            style={{ background: "radial-gradient(circle, #6366F133, transparent 70%)" }}
+            style={{
+              background: "radial-gradient(circle, #6366F133, transparent 70%)",
+            }}
           />
           {/* Grid lines */}
           <div
@@ -74,16 +99,17 @@ export default function Login() {
               background: "rgba(20,22,32,0.7)",
               border: "1px solid rgba(255,255,255,0.08)",
               backdropFilter: "blur(32px)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset",
+              boxShadow:
+                "0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03) inset",
             }}
           >
             {/* Logo */}
-            <div className="flex items-center gap-3 mb-8">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                <Sparkles size={16} className="text-white" />
+            <div className="flex items-center gap-1 mb-8">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg ">
+                <PerplexityLogo size={32} className="text-white/60" />
               </div>
-              <span className="font-display font-medium text-white/80 text-lg tracking-tight">
-                HybridMind
+              <span className="font-display font-medium text-white/80 text-xl tracking-tight">
+                Perplexity
               </span>
             </div>
 
@@ -105,10 +131,16 @@ export default function Login() {
                   style={{
                     background: "rgba(255,255,255,0.04)",
                     border: `1px solid ${focusedField === "email" ? "rgba(245,158,11,0.4)" : "rgba(255,255,255,0.08)"}`,
-                    boxShadow: focusedField === "email" ? "0 0 0 3px rgba(245,158,11,0.08)" : "none",
+                    boxShadow:
+                      focusedField === "email"
+                        ? "0 0 0 3px rgba(245,158,11,0.08)"
+                        : "none",
                   }}
                 >
-                  <Mail size={15} className="absolute left-4 text-white/25 pointer-events-none" />
+                  <Mail
+                    size={15}
+                    className="absolute left-4 text-white/25 pointer-events-none"
+                  />
                   <input
                     type="email"
                     placeholder="you@example.com"
@@ -131,10 +163,16 @@ export default function Login() {
                   style={{
                     background: "rgba(255,255,255,0.04)",
                     border: `1px solid ${focusedField === "password" ? "rgba(245,158,11,0.4)" : "rgba(255,255,255,0.08)"}`,
-                    boxShadow: focusedField === "password" ? "0 0 0 3px rgba(245,158,11,0.08)" : "none",
+                    boxShadow:
+                      focusedField === "password"
+                        ? "0 0 0 3px rgba(245,158,11,0.08)"
+                        : "none",
                   }}
                 >
-                  <Lock size={15} className="absolute left-4 text-white/25 pointer-events-none" />
+                  <Lock
+                    size={15}
+                    className="absolute left-4 text-white/25 pointer-events-none"
+                  />
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
@@ -157,7 +195,10 @@ export default function Login() {
               {/* Submit */}
               <motion.button
                 type="submit"
-                whileHover={{ scale: 1.02, boxShadow: "0 8px 25px rgba(245,158,11,0.35)" }}
+                whileHover={{
+                  scale: 1.02,
+                  boxShadow: "0 8px 25px rgba(245,158,11,0.35)",
+                }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full mt-2 flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold transition-all"
                 style={{
@@ -174,7 +215,10 @@ export default function Login() {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }} />
+                <div
+                  className="w-full"
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}
+                />
               </div>
             </div>
 

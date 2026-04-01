@@ -1,31 +1,75 @@
 import { initializeSocketConnection } from "../service/chat.socket";
-import { sendMessage, getChats, getMessages, deleteChat } from "../service/chat.api";
 import {
-  setChats, setCurrentChatId, setError, setLoading,
-  createNewChat, addNewMessage, addMessages,
+  sendMessageWithFile,
+  sendMessage,
+  getChats,
+  getMessages,
+  deleteChat,
+} from "../service/chat.api";
+import {
+  setChats,
+  setCurrentChatId,
+  setError,
+  setLoading,
+  createNewChat,
+  addNewMessage,
+  addMessages,
 } from "../chat.slice";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 
 export const useChat = () => {
-  const dispatch      = useDispatch();
-  const chats         = useSelector((state) => state.chat.chats);
+  const dispatch = useDispatch();
+  const chats = useSelector((state) => state.chat.chats);
   const currentChatId = useSelector((state) => state.chat.currentChatId);
 
-  async function handleSendMessage({ message, chatId }) {
+  async function handleSendMessage({ message, chatId, file }) {
     dispatch(setLoading(true));
-    const data = await sendMessage({ message, chat: chatId });
-    const { chat, aiMessage } = data;
-    const activeChatId = chatId || chat._id;
+    dispatch(setError(null));
 
-    if (!chatId) {
-      dispatch(createNewChat({ chatId: chat._id, title: chat.title }));
+    try {
+      const data = file
+        ? await sendMessageWithFile({ message, chat: chatId, file })
+        : await sendMessage({ message, chat: chatId });
+
+      const { chat, aiMessage, userFile } = data;
+      const activeChatId = chatId || chat._id;
+
+      if (!chatId) {
+        dispatch(createNewChat({ chatId: chat._id, title: chat.title }));
+      }
+
+      dispatch(
+        addNewMessage({
+          chatId: activeChatId,
+          content: message,
+          role: "user",
+          userFile: userFile || null,
+        }),
+      );
+
+      dispatch(
+        addNewMessage({
+          chatId: activeChatId,
+          content: aiMessage.content,
+          role: aiMessage.role,
+        }),
+      );
+
+      dispatch(setCurrentChatId(activeChatId));
+      return data;
+    } catch (error) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error.message ||
+        "Failed to send message.";
+
+      dispatch(setError(errorMessage));
+      toast.error(errorMessage);
+      throw error;
+    } finally {
+      dispatch(setLoading(false));
     }
-    dispatch(addNewMessage({ chatId: activeChatId, content: message,          role: "user"          }));
-    dispatch(addNewMessage({ chatId: activeChatId, content: aiMessage.content, role: aiMessage.role }));
-    dispatch(setCurrentChatId(activeChatId));
-    dispatch(setLoading(false));
-    return data;
   }
 
   async function handleGetChats() {
@@ -35,10 +79,15 @@ export const useChat = () => {
     dispatch(
       setChats(
         chats.reduce((acc, chat) => {
-          acc[chat._id] = { id: chat._id, title: chat.title, messages: [], lastUpdated: chat.updatedAt };
+          acc[chat._id] = {
+            id: chat._id,
+            title: chat.title,
+            messages: [],
+            lastUpdated: chat.updatedAt,
+          };
           return acc;
-        }, {})
-      )
+        }, {}),
+      ),
     );
     dispatch(setLoading(false));
   }
@@ -47,7 +96,11 @@ export const useChat = () => {
     const source = chatsArg || chats;
     if (source[chatId]?.messages.length === 0) {
       const data = await getMessages(chatId);
-      const formattedMessages = data.messages.map((msg) => ({ content: msg.content, role: msg.role }));
+      const formattedMessages = data.messages.map((msg) => ({
+        content: msg.content,
+        role: msg.role,
+        userFile: msg.userFile || null,
+      }));
       dispatch(addMessages({ chatId, messages: formattedMessages }));
     }
     dispatch(setCurrentChatId(chatId));
@@ -70,7 +123,7 @@ export const useChat = () => {
       }
       toast.success("Thread deleted");
     } catch (err) {
-      toast.error("Failed to delete thread",err);
+      toast.error("Failed to delete thread", err);
     }
   }
 

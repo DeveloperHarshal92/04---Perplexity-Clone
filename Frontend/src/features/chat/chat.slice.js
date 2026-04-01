@@ -19,8 +19,12 @@ const chatSlice = createSlice({
       };
     },
     addNewMessage: (state, action) => {
-      const { chatId, content, role } = action.payload;
-      state.chats[chatId].messages.push({ content, role });
+      const { chatId, content, role, userFile } = action.payload;
+      state.chats[chatId].messages.push({
+        content,
+        role,
+        userFile: userFile || null,
+      });
     },
     addMessages: (state, action) => {
       const { chatId, messages } = action.payload;
@@ -51,21 +55,3 @@ export const {
   addMessages,
 } = chatSlice.actions;
 export default chatSlice.reducer;
-
-// chats = {
-//     "docker and AWS": {
-//         messages: [
-//             {
-//                 role: "user",
-//                 content: "What is docker?"
-//             },
-//             {
-//                 role: "ai",
-//                 content: "Docker is a platform that allows developers to automate the deployment of applications inside lightweight, portable containers. It provides an efficient way to package and distribute software, ensuring consistency across different environments."
-//             }
-//         ],
-//         id: "docker and AWS",
-//         lastUpdated: "2024-06-20T12:34:56Z",
-//     }
-
-// }

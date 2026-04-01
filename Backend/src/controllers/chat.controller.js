@@ -1,52 +1,106 @@
 import { generateChatTitle, generateResponse } from "../services/ai.service.js";
 import chatModel from "../models/chat.model.js";
 import messageModel from "../models/message.model.js";
+import { processFile } from "../services/file.service.js";
 
 export async function sendMessage(req, res) {
-  const { message, chat: chatId } = req.body;
+  try {
+    const inputMessage = typeof req.body.message === "string" ? req.body.message : "";
+    const { chat: chatId } = req.body;
+    const file = req.file;
 
-  let title = null,
-    chat = null;
+    let title = null,
+      chat = null;
+    let processedFile = null;
 
-  if (!chatId) {
-    title = await generateChatTitle(message);
-    chat = await chatModel.create({
-      user: req.user.id,
+    // ── Process file if attached ──────────────────────────────────────────────
+    if (file) {
+      processedFile = await processFile(file);
+    }
+
+    const userFile = processedFile
+      ? {
+          name: processedFile.name,
+          type: processedFile.type,
+          url: processedFile.strategy === "imagekit" ? processedFile.url : null,
+        }
+      : null;
+
+    // ── Create new chat if no chatId ──────────────────────────────────────────
+    if (!chatId) {
+      const titleSource =
+        inputMessage.trim() || (processedFile ? `Discuss ${processedFile.name}` : "New chat");
+
+      title = await generateChatTitle(titleSource);
+      chat = await chatModel.create({
+        user: req.user.id,
+        title,
+      });
+    }
+
+    const currentChatId = chatId || chat._id;
+
+    // ── Save user message to DB ───────────────────────────────────────────────
+    await messageModel.create({
+      chat: currentChatId,
+      content: inputMessage,
+      aiContext: processedFile?.strategy === "parsed" ? processedFile.aiContext : "",
+      userFile,
+      role: "user",
+    });
+
+    // ── Fetch full message history for context ────────────────────────────────
+    const messages = await messageModel.find({ chat: currentChatId }).sort({ createdAt: 1, _id: 1 });
+
+    const messagesForAI = messages.map((msg) => {
+      const messageObject = msg.toObject();
+      const contentParts = [messageObject.content];
+
+      if (messageObject.role === "user" && messageObject.aiContext) {
+        contentParts.push(messageObject.aiContext);
+      }
+
+      return {
+        ...messageObject,
+        content: contentParts.filter(Boolean).join("\n\n"),
+      };
+    });
+
+    // ── Call AI — pass processedFile so generateResponse can handle vision ────
+    // For text-only: processedFile is null → agent handles it as before
+    // For images:    processedFile.strategy === "imagekit" → Gemini vision
+    // For documents: processedFile.strategy === "parsed"   → agent with text
+    const result = await generateResponse(messagesForAI, processedFile);
+
+    // ── Save AI response to DB ────────────────────────────────────────────────
+    const aiMessage = await messageModel.create({
+      chat: currentChatId,
+      content: result,
+      role: "ai",
+    });
+
+    res.status(201).json({
       title,
+      chat: chat || { _id: chatId },
+      aiMessage,
+      userFile,
+    });
+  } catch (error) {
+    console.error("Error in sendMessage:", error);
+    res.status(500).json({
+      message: "An error occurred while processing your request",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
-
-  const currentChatId = chatId || chat._id;
-  const userMessage = await messageModel.create({
-    chat: currentChatId,
-    content: message,
-    role: "user",
-  });
-
-  const messages = await messageModel.find({ chat: currentChatId });
-
-  const result = await generateResponse(messages);
-
-  const aiMessage = await messageModel.create({
-    chat: chatId || chat._id,
-    content: result,
-    role: "ai",
-  });
-
-  res.status(201).json({
-    title,
-    chat: chat || { _id: chatId },
-    aiMessage,
-  });
 }
+
+// ── All other controllers unchanged ──────────────────────────────────────────
 
 export async function getChats(req, res) {
   const user = req.user;
-
   const chats = await chatModel.find({ user: user.id });
-
   res.status(200).json({
-    message: "Chat retrived successfully.",
+    message: "Chat retrieved successfully.",
     chats,
   });
 }
@@ -60,15 +114,13 @@ export async function getMessages(req, res) {
   });
 
   if (!chat) {
-    return res.status(404).json({
-      message: "Chat not found",
-    });
+    return res.status(404).json({ message: "Chat not found" });
   }
 
-  const messages = await messageModel.find({ chat: chatId });
+  const messages = await messageModel.find({ chat: chatId }).sort({ createdAt: 1, _id: 1 });
 
   res.status(200).json({
-    message: "Messages retrived successfully.",
+    message: "Messages retrieved successfully.",
     messages,
   });
 }
@@ -77,21 +129,15 @@ export async function deleteChat(req, res) {
   const { chatId } = req.params;
 
   const chat = await chatModel.findByIdAndDelete({
-    _id : chatId,
-    user : req.user.id
-  })
+    _id: chatId,
+    user: req.user.id,
+  });
 
-  await messageModel.deleteMany({
-    chat : chatId
-  })
+  await messageModel.deleteMany({ chat: chatId });
 
-  if(!chat){
-    res.status(404).json({
-      message : "Chat not found!"
-    })
+  if (!chat) {
+    return res.status(404).json({ message: "Chat not found!" });
   }
 
-  res.status(200).json({
-    messsage : "Chat deleted successfully."
-  })
+  res.status(200).json({ message: "Chat deleted successfully." });
 }

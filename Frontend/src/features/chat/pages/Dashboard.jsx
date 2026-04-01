@@ -12,9 +12,9 @@ import ChatInput from "../components/ChatInput";
 const Dashboard = () => {
   const chat = useChat();
   const [chatInput, setChatInput] = useState("");
-  const [isDark, setIsDark] = useState(true);          // ← single source of truth
+  const [isDark, setIsDark] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [attachedFiles, setAttachedFiles] = useState([]);
+  const [attachedFiles, setAttachedFiles] = useState([]); // ← single array, single source of truth
   const activeChatRef = useRef(null);
 
   const chats = useSelector((state) => state.chat.chats);
@@ -26,19 +26,61 @@ const Dashboard = () => {
     chat.handleGetChats();
   }, []);
 
+  // ── Add files to the array ──
+  const handleFileAttach = (files) => {
+    const newFiles = Array.from(files).map((f) => ({
+      id: Math.random().toString(36).slice(2),
+      name: f.name,
+      size: f.size,
+      type: f.type,
+      file: f,
+      // Generate preview URL only for images
+      preview: f.type.startsWith("image/") ? URL.createObjectURL(f) : null,
+      isImage: f.type.startsWith("image/"),
+    }));
+    setAttachedFiles((prev) => [...prev, ...newFiles]);
+  };
+
+  // ── Remove a single file by id, revoke its blob URL if present ──
+  const handleRemoveFile = (id) => {
+    setAttachedFiles((prev) => {
+      const file = prev.find((f) => f.id === id);
+      if (file?.preview) URL.revokeObjectURL(file.preview); // free memory
+      return prev.filter((f) => f.id !== id);
+    });
+  };
+
+  // ── Clear all files (called after successful send) ──
+  const clearAttachedFiles = () => {
+    attachedFiles.forEach((f) => {
+      if (f.preview) URL.revokeObjectURL(f.preview);
+    });
+    setAttachedFiles([]);
+  };
+
   const handleSubmitMessage = async (event) => {
     event.preventDefault();
     const trimmedMessage = chatInput.trim();
-    if (!trimmedMessage) return;
+
+    // Allow send if there's text OR at least one file
+    if (!trimmedMessage && attachedFiles.length === 0) return;
 
     const chatIdToUse = activeChatRef.current || currentChatId;
-    const data = await chat.handleSendMessage({ message: trimmedMessage, chatId: chatIdToUse });
+
+    // Pass only the first file to the API for now
+    // (multi-file support can be added later on the backend)
+    const data = await chat.handleSendMessage({
+      message: trimmedMessage,
+      chatId: chatIdToUse,
+      file: attachedFiles[0]?.file || null,
+    });
 
     if (!activeChatRef.current && data?.chat?._id) {
       activeChatRef.current = data.chat._id;
     }
+
     setChatInput("");
-    setAttachedFiles([]);
+    clearAttachedFiles();
   };
 
   const openChat = (chatId) => {
@@ -53,7 +95,6 @@ const Dashboard = () => {
     setSidebarOpen(false);
   };
 
-  // ── Delete: clear activeChatRef if the deleted thread was active ──
   const handleDeleteChat = (chatId) => {
     if (activeChatRef.current === chatId) {
       activeChatRef.current = null;
@@ -61,35 +102,21 @@ const Dashboard = () => {
     chat.handleDeleteChat(chatId);
   };
 
-  const handleFileAttach = (files) => {
-    const newFiles = Array.from(files).map((f) => ({
-      id: Math.random().toString(36).slice(2),
-      name: f.name, size: f.size, type: f.type, file: f,
-    }));
-    setAttachedFiles((prev) => [...prev, ...newFiles]);
-  };
-
-  const handleRemoveFile = (id) => {
-    setAttachedFiles((prev) => prev.filter((f) => f.id !== id));
-  };
-
   const currentMessages = chats[currentChatId]?.messages || [];
-  const currentTitle    = chats[currentChatId]?.title;
+  const currentTitle = chats[currentChatId]?.title;
 
-  // Root background switches with isDark
-  const rootBg    = isDark ? "#080808" : "#f5f5f2";
+  const rootBg = isDark ? "#080808" : "#f5f5f2";
   const rootColor = isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.80)";
 
   return (
     <>
-      {/* Toast notifications */}
       <Toaster
         position="bottom-right"
         toastOptions={{
           style: {
             background: isDark ? "#1a1a1a" : "#ffffff",
-            color:      isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.75)",
-            border:     `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.09)"}`,
+            color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.75)",
+            border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.09)"}`,
             borderRadius: "10px",
             fontSize: "13px",
             fontFamily: "'DM Sans', sans-serif",
@@ -118,17 +145,21 @@ const Dashboard = () => {
 
       <div
         className="font-sans-dm flex h-screen overflow-hidden relative"
-        style={{ background: rootBg, color: rootColor, transition: "background 0.3s ease, color 0.3s ease" }}
+        style={{
+          background: rootBg,
+          color: rootColor,
+          transition: "background 0.3s ease, color 0.3s ease",
+        }}
       >
-        {/* Ambient decorative layer — receives isDark */}
         <AmbientBackground isDark={isDark} />
 
-        {/* Sidebar backdrop */}
         {sidebarOpen && (
-          <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+          <div
+            className="sidebar-overlay"
+            onClick={() => setSidebarOpen(false)}
+          />
         )}
 
-        {/* Sidebar — receives isDark + onDeleteChat */}
         <Sidebar
           chats={chats}
           currentChatId={currentChatId}
@@ -141,7 +172,6 @@ const Dashboard = () => {
         />
 
         <main className="relative z-10 flex-1 flex flex-col min-w-0 w-full">
-          {/* Header — receives isDark + onToggleTheme */}
           <ChatHeader
             title={currentTitle}
             isLoading={isLoading}
@@ -151,21 +181,19 @@ const Dashboard = () => {
             sidebarOpen={sidebarOpen}
           />
 
-          {/* Feed — receives isDark */}
           <ChatFeed
             messages={currentMessages}
             isLoading={isLoading}
             isDark={isDark}
           />
 
-          {/* Input — receives isDark */}
           <ChatInput
             value={chatInput}
             onChange={setChatInput}
             onSubmit={handleSubmitMessage}
-            attachedFiles={attachedFiles}
-            onFileAttach={handleFileAttach}
-            onRemoveFile={handleRemoveFile}
+            attachedFiles={attachedFiles}       // array
+            onFileAttach={handleFileAttach}     // (files) => void
+            onRemoveFile={handleRemoveFile}     // (id) => void
             isDark={isDark}
           />
         </main>
@@ -174,4 +202,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;           
+export default Dashboard;
