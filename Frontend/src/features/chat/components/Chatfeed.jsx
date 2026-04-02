@@ -63,7 +63,7 @@ const EmptyState = ({ isDark }) => (
       className={`mt-4 text-sm ${isDark ? "text-white/20" : "text-black/30"}`}
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
-      Ask anything
+      Let's Build something different today
     </motion.p>
   </motion.div>
 );
@@ -109,7 +109,6 @@ const getFileIcon = (type) => {
 const FileAttachment = ({ userFile, isDark }) => {
   if (!userFile) return null;
 
-  // Image — uploaded to ImageKit, has a URL
   if (userFile.type?.startsWith("image/") && userFile.url) {
     return (
       <motion.div
@@ -139,7 +138,6 @@ const FileAttachment = ({ userFile, isDark }) => {
     );
   }
 
-  // Document — parsed locally, no URL, show chip only
   return (
     <motion.div
       initial={{ opacity: 0, x: 8 }}
@@ -148,7 +146,6 @@ const FileAttachment = ({ userFile, isDark }) => {
       className="self-end"
     >
       {userFile.url ? (
-        // Has URL (future-proof for docs stored on ImageKit)
         <a
           href={userFile.url}
           target="_blank"
@@ -172,7 +169,6 @@ const FileAttachment = ({ userFile, isDark }) => {
           </span>
         </a>
       ) : (
-        // Parsed locally — no link, just a label chip
         <div
           className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-sm"
           style={{
@@ -185,7 +181,6 @@ const FileAttachment = ({ userFile, isDark }) => {
         >
           <span className="text-base shrink-0">{getFileIcon(userFile.type)}</span>
           <span className="truncate">{userFile.name}</span>
-          {/* Pill indicating AI has read it */}
           <span
             className="ml-auto shrink-0 text-xs px-2 py-0.5 rounded-full"
             style={{
@@ -202,7 +197,7 @@ const FileAttachment = ({ userFile, isDark }) => {
   );
 };
 
-// ─── User Message wrapper (file chip + text bubble) ───────────────────────────
+// ─── User Message wrapper ─────────────────────────────────────────────────────
 const UserMessage = ({ message, index, isDark }) => (
   <motion.div
     initial={{ opacity: 0, y: 12 }}
@@ -210,10 +205,8 @@ const UserMessage = ({ message, index, isDark }) => (
     transition={{ duration: 0.3, delay: index * 0.04 }}
     className="flex flex-col items-end gap-2"
   >
-    {/* File attachment — rendered above the text bubble */}
     <FileAttachment userFile={message.userFile} isDark={isDark} />
 
-    {/* Text bubble — only if there's text content */}
     {message.content && (
       <div
         className="px-5 py-3 rounded-2xl rounded-br-none shadow-sm max-w-[85%] text-sm md:text-base leading-relaxed"
@@ -238,6 +231,12 @@ const ChatFeed = ({ messages, isLoading, isDark }) => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
+  // Index of the last AI message — only this one gets the typewriter effect
+  const lastAiIndex = messages.reduce(
+    (last, msg, i) => (msg.role === "ai" ? i : last),
+    -1
+  );
+
   return (
     <div className="messages-feed flex-1 overflow-y-auto px-4 sm:px-6 py-8">
       <div className="max-w-2xl mx-auto space-y-6 pb-40">
@@ -248,7 +247,6 @@ const ChatFeed = ({ messages, isLoading, isDark }) => {
           <AnimatePresence initial={false}>
             {messages.map((message, index) =>
               message.role === "user" ? (
-                // User messages handled here — includes file chip logic
                 <UserMessage
                   key={index}
                   message={message}
@@ -256,12 +254,12 @@ const ChatFeed = ({ messages, isLoading, isDark }) => {
                   isDark={isDark}
                 />
               ) : (
-                // AI messages delegated to MessageBubble (unchanged)
                 <MessageBubble
                   key={index}
                   message={message}
                   index={index}
                   isDark={isDark}
+                  isLatest={index === lastAiIndex}
                 />
               )
             )}

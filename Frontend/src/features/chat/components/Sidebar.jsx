@@ -1,6 +1,8 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, MessageSquare, X, Home, Compass, LayoutGrid, History, Settings, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router";
+import { useSelector } from "react-redux";
 
 // ─── Strip markdown from titles ───────────────────────────────────────────────
 const stripMarkdown = (text) => {
@@ -46,7 +48,6 @@ const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete, isDark }) => (
       />
     )}
 
-    {/* Icon */}
     <MessageSquare
       size={15}
       className={`shrink-0 transition-colors ${
@@ -56,7 +57,6 @@ const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete, isDark }) => (
       }`}
     />
 
-    {/* Title */}
     <span className={`text-sm truncate flex-1 transition-colors ${
       isActive
         ? isDark ? "text-white/80" : "text-black/80"
@@ -65,11 +65,10 @@ const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete, isDark }) => (
       {stripMarkdown(chatItem.title) || "New Chat"}
     </span>
 
-    {/* ── DELETE BUTTON — revealed on row hover ── */}
     <button
       type="button"
       onClick={(e) => {
-        e.stopPropagation(); // prevent opening the chat
+        e.stopPropagation();
         onDelete(chatItem.id);
       }}
       aria-label={`Delete "${stripMarkdown(chatItem.title) || "chat"}"`}
@@ -91,10 +90,19 @@ const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete, isDark }) => (
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, isOpen, onClose, isDark }) => {
   const chatList = Object.values(chats);
+  const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
 
-  // All colours derived from isDark so the whole panel switches
-  const panel     = isDark ? { bg: "#111111", border: "rgba(255,255,255,0.07)", divider: "rgba(255,255,255,0.06)", faint: "rgba(255,255,255,0.05)" }
-                           : { bg: "#f8f8f6", border: "rgba(0,0,0,0.08)",       divider: "rgba(0,0,0,0.07)",       faint: "rgba(0,0,0,0.05)"       };
+  const avatarLetter = user?.username?.charAt(0).toUpperCase() || "U";
+
+  const panel = isDark
+    ? { bg: "#111111", border: "rgba(255,255,255,0.07)", divider: "rgba(255,255,255,0.06)", faint: "rgba(255,255,255,0.05)" }
+    : { bg: "#f8f8f6", border: "rgba(0,0,0,0.08)",       divider: "rgba(0,0,0,0.07)",       faint: "rgba(0,0,0,0.05)"       };
+
+  const handleProfileClick = () => {
+    onClose();
+    navigate("/profile");
+  };
 
   return (
     <AnimatePresence>
@@ -167,7 +175,7 @@ const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, is
             </div>
           </div>
 
-          {/* Chat list — this is where delete buttons live */}
+          {/* Chat list */}
           <div className="flex-1 px-3 overflow-y-auto scrollbar-thin space-y-0.5 pb-4">
             {chatList.length === 0 ? (
               <div className="px-3 py-6 text-center">
@@ -189,17 +197,34 @@ const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, is
             )}
           </div>
 
-          {/* User */}
+          {/* ── User — clicking opens Profile page ── */}
           <div className="px-3 py-3 shrink-0" style={{ borderTop: `1px solid ${panel.divider}` }}>
-            <div className={`flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-all ${isDark ? "hover:bg-white/5" : "hover:bg-black/4"}`}>
-              <div className="flex items-center gap-2.5">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0" style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}>
-                  U
+            <motion.button
+              type="button"
+              whileHover={{ x: 2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleProfileClick}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
+                isDark ? "hover:bg-white/5" : "hover:bg-black/4"
+              }`}
+              aria-label="View profile"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                {/* Avatar initial */}
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
+                  style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
+                >
+                  {avatarLetter}
                 </div>
-                <span className={`text-sm truncate ${isDark ? "text-white/45" : "text-black/50"}`}>My Account</span>
+                <div className="flex flex-col items-start min-w-0">
+                  <span className={`text-sm truncate max-w-[140px] ${isDark ? "text-white/55" : "text-black/55"}`}>
+                    {user?.username || "My Account"}
+                  </span>
+                </div>
               </div>
               <Settings size={14} className={isDark ? "text-white/20" : "text-black/25"} />
-            </div>
+            </motion.button>
           </div>
         </motion.aside>
       )}

@@ -185,7 +185,7 @@ const ChatInput = ({
             onChange={handleChange}
             onKeyDown={handleKeyDown}
             className={`w-full bg-transparent px-4 pt-3.5 pb-2 outline-none resize-none text-sm leading-relaxed ${textareaClass}`}
-            placeholder="Ask anything… (⌘K)"
+            placeholder="How can I assist you today..."
             rows="1"
             style={{
               maxHeight: "180px",
@@ -219,7 +219,7 @@ const ChatInput = ({
               >
                 <Paperclip size={17} />
               </motion.button>
-              <motion.button
+              {/* <motion.button
                 type="button"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -227,7 +227,7 @@ const ChatInput = ({
                 title="Search web"
               >
                 <Globe size={17} />
-              </motion.button>
+              </motion.button> */}
             </div>
 
             <div className="flex items-center gap-2">

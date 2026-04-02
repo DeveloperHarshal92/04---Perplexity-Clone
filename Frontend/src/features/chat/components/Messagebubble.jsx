@@ -3,9 +3,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useTypewriter } from "../hooks/useTypewriter";
 
-const MessageBubble = ({ message, index, isDark }) => {
+// Inject blink keyframe once
+const blinkStyle =
+  typeof document !== "undefined" && !document.getElementById("tw-blink-style")
+    ? (() => {
+        const s = document.createElement("style");
+        s.id = "tw-blink-style";
+        s.textContent = "@keyframes tw-blink { 0%,100%{opacity:1} 50%{opacity:0} }";
+        document.head.appendChild(s);
+      })()
+    : null;
+
+const MessageBubble = ({ message, index, isDark, isLatest = false }) => {
   const [copied, setCopied] = useState(false);
+
+  const { displayed, isDone } = useTypewriter(
+    message.content,
+    message.role !== "user" && isLatest,
+    14
+  );
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -89,33 +107,46 @@ const MessageBubble = ({ message, index, isDark }) => {
               td:         ({ children }) => <td className="px-3 py-2 text-sm" style={{ borderBottom: `1px solid ${tdBorder}`, color: proseMid }}>{children}</td>,
             }}
           >
-            {message.content}
+            {displayed}
           </ReactMarkdown>
+
+          {/* Blinking cursor — visible only while typewriter is running */}
+          {!isDone && (
+            <span
+              className="inline-block w-[2px] h-[0.85em] align-middle ml-[1px] rounded-sm"
+              style={{
+                background: isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.45)",
+                animation: "tw-blink 0.9s step-end infinite",
+              }}
+            />
+          )}
         </div>
 
-        {/* Copy button */}
-        <motion.button
-          onClick={handleCopy}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg flex items-center gap-1.5"
-          style={{ background: copyBtnBg, border: `1px solid ${copyBtnBorder}` }}
-          title="Copy"
-        >
-          <AnimatePresence mode="wait">
-            {copied ? (
-              <motion.div key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center gap-1">
-                <Check size={11} style={{ color: proseWeak }} />
-                <span className="text-xs font-mono-dm" style={{ color: proseWeak }}>Copied</span>
-              </motion.div>
-            ) : (
-              <motion.div key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center gap-1">
-                <Copy size={11} style={{ color: proseWeak }} />
-                <span className="text-xs font-mono-dm" style={{ color: `${proseWeak}99` }}>Copy</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.button>
+        {/* Copy button — only shown after typing is done */}
+        {isDone && (
+          <motion.button
+            onClick={handleCopy}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg flex items-center gap-1.5"
+            style={{ background: copyBtnBg, border: `1px solid ${copyBtnBorder}` }}
+            title="Copy"
+          >
+            <AnimatePresence mode="wait">
+              {copied ? (
+                <motion.div key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center gap-1">
+                  <Check size={11} style={{ color: proseWeak }} />
+                  <span className="text-xs font-mono-dm" style={{ color: proseWeak }}>Copied</span>
+                </motion.div>
+              ) : (
+                <motion.div key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center gap-1">
+                  <Copy size={11} style={{ color: proseWeak }} />
+                  <span className="text-xs font-mono-dm" style={{ color: `${proseWeak}99` }}>Copy</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        )}
       </div>
     </motion.div>
   );
