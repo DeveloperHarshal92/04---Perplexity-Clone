@@ -13,7 +13,7 @@ import { searchInternet } from "./internet.service.js";
 // ── Models ────────────────────────────────────────────────────────────────────
 
 const geminiModel = new ChatGoogleGenerativeAI({
-  model: "gemini-1.5-flash", // upgraded: gemini-flash-latest is deprecated
+  model: "gemini-2.5-flash",
   apiKey: process.env.GEMINI_API_KEY,
 });
 
@@ -46,54 +46,77 @@ const agent = createAgent({
 //
 export async function generateResponse(messages, processedFile = null) {
   try {
+    // ── CASE 1: Image attached → use Gemini (vision capable) ──────────────────
+    if (processedFile?.strategy === "imagekit") {
+      // LangChain's Google GenAI integration accepts standard image content
+      // blocks, which are converted into Gemini inlineData parts.
+      const lastMessage = messages[messages.length - 1];
 
-  // ── CASE 1: Image attached → use Gemini (vision capable) ──────────────────
-  if (processedFile?.strategy === "imagekit") {
+      const humanMessageContent = [
+        {
+          type: "text",
+          text: lastMessage.content || "Please describe and analyze this image.",
+        },
+        {
+          type: "image",
+          source_type: "base64",
+          data: processedFile.base64,
+          mime_type: processedFile.type,
+        },
+      ];
 
-    // Build the last user message as a multimodal content array
-    // LangChain's HumanMessage accepts { type, image_url } for vision
-    const lastMessage = messages[messages.length - 1];
+      const historyMessages = messages
+        .slice(0, -1)
+        .map((msg) => {
+          if (msg.role === "user") return new HumanMessage(msg.content);
+          if (msg.role === "ai") return new AIMessage(msg.content);
+          return null;
+        })
+        .filter(Boolean);
 
-    const humanMessageContent = [
-      {
-        type: "image_url",
-        image_url: processedFile.url, // ImageKit CDN URL
-      },
-      {
-        type: "text",
-        text: lastMessage.content || "Please describe and analyze this image.",
-      },
-    ];
+      console.log("IMAGE SIZE:", processedFile.base64.length);
 
-    const historyMessages = messages.slice(0, -1).map((msg) => {
-      if (msg.role === "user") return new HumanMessage(msg.content);
-      if (msg.role === "ai") return new AIMessage(msg.content);
-    });
+      const response = await geminiModel.invoke([
+        new SystemMessage(
+          `You are a helpful and precise assistant.
+          When an image is provided, carefully analyze and describe it in detail.
+          Answer any questions about the image accurately.`
+        ),
+        ...historyMessages,
+        new HumanMessage(humanMessageContent),
+      ]);
 
-    const response = await geminiModel.invoke([
-      new SystemMessage(
-        `You are a helpful and precise assistant. 
-        When an image is provided, carefully analyze and describe it in detail. 
-        Answer any questions about the image accurately.`
-      ),
-      ...historyMessages,
-      new HumanMessage({ content: humanMessageContent }),
-    ]);
+      return response.text;
+    }
 
-    return response.text;
-  }
+    // ── CASE 2: Document attached (PDF, DOCX, TXT) → use agent with text ──────
+    // The document text is already injected into the last message's content
+    // by chat.controller.js via aiPrompt, so the agent handles it as plain text.
+    if (processedFile?.strategy === "parsed") {
+      const response = await agent.invoke({
+        messages: [
+          new SystemMessage(
+            `You are a helpful and precise assistant. 
+            The user has shared a document — its content has been extracted and appended to their message. 
+            Read the document content carefully and answer based on it.
+            If the question also requires up-to-date information, use the searchInternet tool.`
+          ),
+          ...messages.map((msg) => {
+            if (msg.role === "user") return new HumanMessage(msg.content);
+            if (msg.role === "ai") return new AIMessage(msg.content);
+          }),
+        ],
+      });
+      return response.messages[response.messages.length - 1].text;
+    }
 
-  // ── CASE 2: Document attached (PDF, DOCX, TXT) → use agent with text ──────
-  // The document text is already injected into the last message's content
-  // by chat.controller.js via aiPrompt, so the agent handles it as plain text.
-  if (processedFile?.strategy === "parsed") {
+    // ── CASE 3: Text only → original agent behavior, completely unchanged ──────
     const response = await agent.invoke({
       messages: [
         new SystemMessage(
-          `You are a helpful and precise assistant. 
-          The user has shared a document — its content has been extracted and appended to their message. 
-          Read the document content carefully and answer based on it.
-          If the question also requires up-to-date information, use the searchInternet tool.`
+          `You are a helpful and precise assistant for answering questions.
+          If you don't know the answer, say you don't know. 
+          If the question requires up-to-date information, use the "searchInternet" tool to get the latest information from the internet and then answer based on the search results.`
         ),
         ...messages.map((msg) => {
           if (msg.role === "user") return new HumanMessage(msg.content);
@@ -102,25 +125,23 @@ export async function generateResponse(messages, processedFile = null) {
       ],
     });
     return response.messages[response.messages.length - 1].text;
-  }
-
-  // ── CASE 3: Text only → original agent behavior, completely unchanged ──────
-  const response = await agent.invoke({
-    messages: [
-      new SystemMessage(
-        `You are a helpful and precise assistant for answering questions.
-        If you don't know the answer, say you don't know. 
-        If the question requires up-to-date information, use the "searchInternet" tool to get the latest information from the internet and then answer based on the search results.`
-      ),
-      ...messages.map((msg) => {
-        if (msg.role === "user") return new HumanMessage(msg.content);
-        if (msg.role === "ai") return new AIMessage(msg.content);
-      }),
-    ],
-  });
-  return response.messages[response.messages.length - 1].text;
   } catch (error) {
-    console.error("Error generating AI response:", error);
+    console.error(
+      "FULL ERROR:",
+      JSON.stringify(
+        {
+          name: error?.name,
+          message: error?.message,
+          code: error?.code,
+          status: error?.status,
+          details: error?.details,
+          cause: error?.cause,
+        },
+        null,
+        2
+      )
+    );
+    console.error(error?.stack);
     return "I apologize, but I'm having trouble processing your request right now. Please try again later.";
   }
 }

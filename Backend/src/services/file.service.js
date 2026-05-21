@@ -14,6 +14,9 @@ export const processFile = async (file) => {
 
   // ── IMAGE → Upload to ImageKit ──
   if (mimetype.startsWith("image/")) {
+    const base64 = buffer.toString("base64");
+    const dataUrl = `data:${mimetype};base64,${base64}`;
+
     const uploaded = await imagekit.upload({
       file: buffer,
       fileName: originalname,
@@ -24,6 +27,8 @@ export const processFile = async (file) => {
     return {
       strategy: "imagekit",
       url: uploaded.url,
+      dataUrl,
+      base64,
       fileId: uploaded.fileId,
       name: originalname,
       type: mimetype,
