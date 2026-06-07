@@ -1,5 +1,35 @@
 @import "tailwindcss";
 
-.messages::-webkit-scrollbar{
-    display: none;
+:root {
+  --bg-base: #FAF9F7;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F5F3F0;
+  --border: rgba(0,0,0,0.08);
+  --text-primary: #1C1917;
+  --text-secondary: rgba(28,25,23,0.60);
+  --text-tertiary: rgba(28,25,23,0.35);
+  --accent: #D97706;
+  --accent-glow: rgba(217,119,6,0.12);
+  --glass-bg: rgba(250,249,247,0.80);
+}
+
+.dark {
+  --bg-base: #1C1917;
+  --bg-surface: #292524;
+  --bg-elevated: #312E2B;
+  --border: rgba(255,255,255,0.08);
+  --text-primary: #E7E5E1;
+  --text-secondary: rgba(231,229,225,0.60);
+  --text-tertiary: rgba(231,229,225,0.35);
+  --accent: #D97706;
+  --accent-glow: rgba(217,119,6,0.15);
+  --glass-bg: rgba(41,37,36,0.72);
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }

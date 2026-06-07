@@ -4,7 +4,6 @@ import { Plus, MessageSquare, X, Home, Compass, LayoutGrid, History, Settings, T
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 
-// ─── Strip markdown from titles ───────────────────────────────────────────────
 const stripMarkdown = (text) => {
   if (!text) return "";
   return text
@@ -16,14 +15,25 @@ const stripMarkdown = (text) => {
     .trim();
 };
 
-// ─── Perplexity SVG Logo ──────────────────────────────────────────────────────
-const PerplexityLogo = ({ size = 18, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={size} height={size} className={className} fill="currentColor">
-    <path d="M5.73486 2L11.4299 7.24715V7.24595V2.01211H12.5385V7.27063L18.2591 2V7.98253H20.6078V16.6118H18.2663V21.9389L12.5385 16.9066V21.9967H11.4299V16.9896L5.74131 22V16.6118H3.39258V7.98253H5.73486V2ZM10.5942 9.0776H4.50118V15.5167H5.73992V13.4856L10.5942 9.0776ZM6.84986 13.9715V19.5565L11.4299 15.5225V9.81146L6.84986 13.9715ZM12.5704 15.4691L17.1577 19.4994V16.6118H17.1518V13.9663L12.5704 9.80608V15.4691ZM18.2663 15.5167H19.4992V9.0776H13.4516L18.2663 13.4399V15.5167ZM17.1505 7.98253V4.51888L13.3911 7.98253H17.1505ZM10.6028 7.98253L6.84346 4.51888V7.98253H10.6028Z" />
+const OrchardLogo = ({ size = 20, className = "" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 22C12 22 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 22 12 22Z" />
+    <path d="M12 22V12" />
+    <path d="M12 16C9 14 8 11 8 11" />
   </svg>
 );
 
-// ─── Sidebar Chat Item ────────────────────────────────────────────────────────
 const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete, isDark }) => (
   <motion.div
     layout
@@ -35,32 +45,27 @@ const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete, isDark }) => (
     className={`
       group relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 border
       ${isActive
-        ? isDark ? "bg-white/10 border-white/10" : "bg-black/7 border-black/10"
-        : isDark ? "border-transparent hover:bg-white/5" : "border-transparent hover:bg-black/5"
+        ? "bg-[var(--border)] border-[var(--border)]"
+        : "border-transparent hover:bg-[var(--border)]"
       }
     `}
   >
-    {/* Active left-edge indicator */}
     {isActive && (
       <motion.div
         layoutId="activeIndicator"
-        className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full ${isDark ? "bg-white/60" : "bg-black/40"}`}
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-full bg-[var(--accent)]"
       />
     )}
 
     <MessageSquare
       size={15}
       className={`shrink-0 transition-colors ${
-        isActive
-          ? isDark ? "text-white/70" : "text-black/60"
-          : isDark ? "text-white/20" : "text-black/20"
+        isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
       }`}
     />
 
-    <span className={`text-sm truncate flex-1 transition-colors ${
-      isActive
-        ? isDark ? "text-white/80" : "text-black/80"
-        : isDark ? "text-white/40 group-hover:text-white/65" : "text-black/40 group-hover:text-black/65"
+    <span className={`text-sm font-sans truncate flex-1 transition-colors ${
+      isActive ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
     }`}>
       {stripMarkdown(chatItem.title) || "New Chat"}
     </span>
@@ -72,32 +77,19 @@ const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete, isDark }) => (
         onDelete(chatItem.id);
       }}
       aria-label={`Delete "${stripMarkdown(chatItem.title) || "chat"}"`}
-      className={`
-        shrink-0 p-1 rounded-md
-        opacity-0 group-hover:opacity-100
-        transition-all duration-150
-        ${isDark
-          ? "text-white/25 hover:text-red-400 hover:bg-red-400/12"
-          : "text-black/25 hover:text-red-500 hover:bg-red-500/10"
-        }
-      `}
+      className="shrink-0 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-150 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10"
     >
       <Trash2 size={14} />
     </button>
   </motion.div>
 );
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
 const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, isOpen, onClose, isDark }) => {
   const chatList = Object.values(chats);
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
 
   const avatarLetter = user?.username?.charAt(0).toUpperCase() || "U";
-
-  const panel = isDark
-    ? { bg: "#111111", border: "rgba(255,255,255,0.07)", divider: "rgba(255,255,255,0.06)", faint: "rgba(255,255,255,0.05)" }
-    : { bg: "#f8f8f6", border: "rgba(0,0,0,0.08)",       divider: "rgba(0,0,0,0.07)",       faint: "rgba(0,0,0,0.05)"       };
 
   const handleProfileClick = () => {
     onClose();
@@ -109,77 +101,75 @@ const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, is
       {isOpen && (
         <motion.aside
           key="sidebar"
-          initial={{ x: -280, opacity: 0 }}
+          initial={{ x: -260, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -280, opacity: 0 }}
+          exit={{ x: -260, opacity: 0 }}
           transition={{ type: "spring", damping: 30, stiffness: 300 }}
-          className="fixed top-0 left-0 h-full z-50 w-[260px] flex flex-col"
-          style={{ background: panel.bg, borderRight: `1px solid ${panel.border}` }}
+          className="fixed sm:relative top-0 left-0 h-full z-50 w-[260px] flex flex-col"
+          style={{ 
+            background: "var(--glass-bg)", 
+            backdropFilter: "blur(24px) saturate(180%)",
+            borderRight: "1px solid var(--border)" 
+          }}
         >
           {/* Logo + Close */}
-          <div className="flex items-center justify-between px-4 py-4 shrink-0" style={{ borderBottom: `1px solid ${panel.divider}` }}>
-            <div className="flex items-center gap-2.5">
-              <PerplexityLogo size={17} className={isDark ? "text-white/80" : "text-black/70"} />
-              <span className={`text-sm font-medium tracking-tight ${isDark ? "text-white/85" : "text-black/80"}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                Perplexity
+          <div className="flex items-center justify-between px-4 py-4 shrink-0" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="flex items-center gap-2">
+              <OrchardLogo size={20} className="text-[var(--accent)]" />
+              <span className="text-sm font-serif font-medium tracking-tight text-[var(--text-primary)]">
+                Orchard AI
               </span>
             </div>
             <button
               onClick={onClose}
               aria-label="Close sidebar"
-              className={`p-1.5 rounded-lg transition-colors ${isDark ? "text-white/30 hover:text-white/70 hover:bg-white/8" : "text-black/30 hover:text-black/70 hover:bg-black/6"}`}
+              className="p-1.5 rounded-lg transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)] sm:hidden"
             >
               <X size={16} />
             </button>
           </div>
 
           {/* New Thread */}
-          <div className="px-3 pt-3 pb-2 shrink-0">
+          <div className="px-3 pt-4 pb-2 shrink-0">
             <motion.button
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={onNewChat}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all border ${
-                isDark
-                  ? "text-white/60 hover:text-white/85 hover:bg-white/5 border-white/8"
-                  : "text-black/55 hover:text-black/85 hover:bg-black/5 border-black/10"
-              }`}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all border text-[var(--text-primary)] border-[var(--border)] hover:bg-[var(--border)]"
             >
               <Plus size={16} />
-              <span>New thread</span>
+              <span className="font-sans">New thread</span>
             </motion.button>
           </div>
 
           {/* Nav */}
-          <div className="px-3 pb-2 space-y-0.5 shrink-0">
+          <div className="px-3 pb-2 pt-2 space-y-0.5 shrink-0">
             {[{ icon: Home, label: "Home" }, { icon: Compass, label: "Discover" }, { icon: LayoutGrid, label: "Spaces" }].map(({ icon: Icon, label }) => (
               <div
                 key={label}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
-                  isDark ? "text-white/40 hover:text-white/70 hover:bg-white/5" : "text-black/40 hover:text-black/70 hover:bg-black/5"
-                }`}
+                className="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border)]"
               >
                 <Icon size={16} />
-                <span className="text-sm">{label}</span>
+                <span className="text-sm font-sans">{label}</span>
               </div>
             ))}
           </div>
 
           {/* History header */}
-          <div className="px-3 pt-3 shrink-0" style={{ borderTop: `1px solid ${panel.faint}` }}>
+          <div className="px-3 pt-4 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2 px-3 mb-2">
-              <History size={13} className={isDark ? "text-white/25" : "text-black/25"} />
-              <span className={`text-xs uppercase tracking-widest font-mono-dm ${isDark ? "text-white/25" : "text-black/25"}`}>
+              <History size={13} className="text-[var(--text-tertiary)]" />
+              <span className="text-[10px] uppercase tracking-widest font-mono text-[var(--text-tertiary)]">
                 History
               </span>
             </div>
           </div>
 
           {/* Chat list */}
-          <div className="flex-1 px-3 overflow-y-auto scrollbar-thin space-y-0.5 pb-4">
+          <div className="flex-1 px-3 overflow-y-auto space-y-0.5 pb-4">
             {chatList.length === 0 ? (
               <div className="px-3 py-6 text-center">
-                <p className={`text-xs font-mono-dm ${isDark ? "text-white/15" : "text-black/20"}`}>No threads yet</p>
+                <p className="text-xs font-sans text-[var(--text-tertiary)]">No threads yet</p>
               </div>
             ) : (
               <AnimatePresence>
@@ -197,33 +187,30 @@ const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, is
             )}
           </div>
 
-          {/* ── User — clicking opens Profile page ── */}
-          <div className="px-3 py-3 shrink-0" style={{ borderTop: `1px solid ${panel.divider}` }}>
+          {/* User */}
+          <div className="px-3 py-3 shrink-0" style={{ borderTop: "1px solid var(--border)" }}>
             <motion.button
               type="button"
               whileHover={{ x: 2 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleProfileClick}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
-                isDark ? "hover:bg-white/5" : "hover:bg-black/4"
-              }`}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all hover:bg-[var(--border)]"
               aria-label="View profile"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                {/* Avatar initial */}
                 <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
-                  style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-serif text-white shrink-0"
+                  style={{ background: "var(--accent)" }}
                 >
                   {avatarLetter}
                 </div>
                 <div className="flex flex-col items-start min-w-0">
-                  <span className={`text-sm truncate max-w-[140px] ${isDark ? "text-white/55" : "text-black/55"}`}>
+                  <span className="text-sm font-sans truncate max-w-[130px] text-[var(--text-primary)]">
                     {user?.username || "My Account"}
                   </span>
                 </div>
               </div>
-              <Settings size={14} className={isDark ? "text-white/20" : "text-black/25"} />
+              <Settings size={14} className="text-[var(--text-secondary)]" />
             </motion.button>
           </div>
         </motion.aside>

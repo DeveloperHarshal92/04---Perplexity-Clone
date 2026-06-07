@@ -10,15 +10,19 @@ import { useState, useEffect, useRef } from "react";
  * @returns {{ displayed: string, isDone: boolean }}
  */
 export const useTypewriter = (text, isActive, speed = 18) => {
-  const [displayed, setDisplayed] = useState(isActive ? "" : text);
-  const [isDone, setIsDone] = useState(!isActive);
-  const indexRef = useRef(isActive ? 0 : text.length);
+  const cacheKey = `typed_${text.slice(0, 50).replace(/\s+/g, '')}`;
+  const hasTyped = localStorage.getItem(cacheKey);
+  const shouldAnimate = isActive && !hasTyped;
+
+  const [displayed, setDisplayed] = useState(shouldAnimate ? "" : text);
+  const [isDone, setIsDone] = useState(!shouldAnimate);
+  const indexRef = useRef(shouldAnimate ? 0 : text.length);
   const rafRef = useRef(null);
   const lastTimeRef = useRef(null);
 
   useEffect(() => {
-    // If not active, show full text immediately
-    if (!isActive) {
+    // If not active or already typed, show full text immediately
+    if (!shouldAnimate) {
       setDisplayed(text);
       setIsDone(true);
       return;
@@ -47,6 +51,7 @@ export const useTypewriter = (text, isActive, speed = 18) => {
 
         if (indexRef.current >= text.length) {
           setIsDone(true);
+          localStorage.setItem(cacheKey, '1');
           return;
         }
       }
@@ -59,7 +64,7 @@ export const useTypewriter = (text, isActive, speed = 18) => {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [text, isActive, speed]);
+  }, [text, shouldAnimate, speed, cacheKey]);
 
   return { displayed, isDone };
 };

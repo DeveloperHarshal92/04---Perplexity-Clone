@@ -14,7 +14,7 @@ const Dashboard = () => {
   const [chatInput, setChatInput] = useState("");
   const [isDark, setIsDark] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [attachedFiles, setAttachedFiles] = useState([]); // ← single array, single source of truth
+  const [attachedFiles, setAttachedFiles] = useState([]);
   const activeChatRef = useRef(null);
 
   const chats = useSelector((state) => state.chat.chats);
@@ -26,7 +26,6 @@ const Dashboard = () => {
     chat.handleGetChats();
   }, []);
 
-  // ── Add files to the array ──
   const handleFileAttach = (files) => {
     const newFiles = Array.from(files).map((f) => ({
       id: Math.random().toString(36).slice(2),
@@ -34,23 +33,20 @@ const Dashboard = () => {
       size: f.size,
       type: f.type,
       file: f,
-      // Generate preview URL only for images
       preview: f.type.startsWith("image/") ? URL.createObjectURL(f) : null,
       isImage: f.type.startsWith("image/"),
     }));
     setAttachedFiles((prev) => [...prev, ...newFiles]);
   };
 
-  // ── Remove a single file by id, revoke its blob URL if present ──
   const handleRemoveFile = (id) => {
     setAttachedFiles((prev) => {
       const file = prev.find((f) => f.id === id);
-      if (file?.preview) URL.revokeObjectURL(file.preview); // free memory
+      if (file?.preview) URL.revokeObjectURL(file.preview);
       return prev.filter((f) => f.id !== id);
     });
   };
 
-  // ── Clear all files (called after successful send) ──
   const clearAttachedFiles = () => {
     attachedFiles.forEach((f) => {
       if (f.preview) URL.revokeObjectURL(f.preview);
@@ -62,13 +58,10 @@ const Dashboard = () => {
     event.preventDefault();
     const trimmedMessage = chatInput.trim();
 
-    // Allow send if there's text OR at least one file
     if (!trimmedMessage && attachedFiles.length === 0) return;
 
     const chatIdToUse = activeChatRef.current || currentChatId;
 
-    // Pass only the first file to the API for now
-    // (multi-file support can be added later on the backend)
     const data = await chat.handleSendMessage({
       message: trimmedMessage,
       chatId: chatIdToUse,
@@ -105,36 +98,27 @@ const Dashboard = () => {
   const currentMessages = chats[currentChatId]?.messages || [];
   const currentTitle = chats[currentChatId]?.title;
 
-  const rootBg = isDark ? "#080808" : "#f5f5f2";
-  const rootColor = isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.80)";
-
   return (
     <>
       <Toaster
         position="bottom-right"
         toastOptions={{
           style: {
-            background: isDark ? "#1a1a1a" : "#ffffff",
-            color: isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.75)",
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.09)"}`,
-            borderRadius: "10px",
+            background: "var(--bg-elevated)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border)",
+            borderRadius: "12px",
             fontSize: "13px",
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', sans-serif",
           },
         }}
       />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
-
-        .font-display  { font-family: 'Fraunces', serif; }
-        .font-mono-dm  { font-family: 'DM Mono', monospace; }
-        .font-sans-dm  { font-family: 'DM Sans', sans-serif; }
-
-        .messages-feed::-webkit-scrollbar { display: none; }
-        .scrollbar-thin::-webkit-scrollbar        { width: 4px; }
-        .scrollbar-thin::-webkit-scrollbar-track  { background: transparent; }
-        .scrollbar-thin::-webkit-scrollbar-thumb  { background: rgba(128,128,128,0.2); border-radius: 99px; }
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+        .font-serif { font-family: 'Lora', Georgia, serif; }
+        .font-sans { font-family: 'Inter', system-ui, sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
 
         .sidebar-overlay {
           position: fixed; inset: 0; z-index: 40;
@@ -144,10 +128,10 @@ const Dashboard = () => {
       `}</style>
 
       <div
-        className="font-sans-dm flex h-screen overflow-hidden relative"
+        className={`font-sans flex h-screen overflow-hidden relative ${isDark ? "dark" : ""}`}
         style={{
-          background: rootBg,
-          color: rootColor,
+          background: "var(--bg-base)",
+          color: "var(--text-primary)",
           transition: "background 0.3s ease, color 0.3s ease",
         }}
       >
@@ -155,7 +139,7 @@ const Dashboard = () => {
 
         {sidebarOpen && (
           <div
-            className="sidebar-overlay"
+            className="sidebar-overlay sm:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -191,9 +175,9 @@ const Dashboard = () => {
             value={chatInput}
             onChange={setChatInput}
             onSubmit={handleSubmitMessage}
-            attachedFiles={attachedFiles}       // array
-            onFileAttach={handleFileAttach}     // (files) => void
-            onRemoveFile={handleRemoveFile}     // (id) => void
+            attachedFiles={attachedFiles}
+            onFileAttach={handleFileAttach}
+            onRemoveFile={handleRemoveFile}
             isDark={isDark}
           />
         </main>

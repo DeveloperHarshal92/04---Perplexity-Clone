@@ -146,7 +146,7 @@ export async function generateResponse(messages, processedFile = null) {
   }
 }
 
-// ── generateChatTitle — completely unchanged ──────────────────────────────────
+// ── generateChatTitle ────────────────────────────────────────────────────────
 export async function generateChatTitle(message) {
   try {
     const response = await mistralModel.invoke([
@@ -159,9 +159,20 @@ export async function generateChatTitle(message) {
       ),
     ]);
 
-    return response.text;
+    // Validate that response has text and it's not empty
+    const title = response?.text?.trim();
+    
+    if (!title) {
+      console.warn("Mistral returned empty title, using fallback from user message");
+      // Fallback: use first 50 chars of the user message as title
+      return message.trim().substring(0, 50) || "New Chat";
+    }
+
+    console.log("Generated title:", title);
+    return title;
   } catch (error) {
-    console.error("Error generating chat title:", error);
-    return "New Chat"; // Fallback title
+    console.error("Error generating chat title:", error?.message);
+    // Fallback: use first 50 chars of the user message as title
+    return message.trim().substring(0, 50) || "New Chat";
   }
 }

@@ -2,22 +2,32 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, Share2, Menu, X } from "lucide-react";
 
-// ─── Perplexity SVG Logo ──────────────────────────────────────────────────────
-const PerplexityLogo = ({ size = 17, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={size} height={size} className={className} fill="currentColor">
-    <path d="M5.73486 2L11.4299 7.24715V7.24595V2.01211H12.5385V7.27063L18.2591 2V7.98253H20.6078V16.6118H18.2663V21.9389L12.5385 16.9066V21.9967H11.4299V16.9896L5.74131 22V16.6118H3.39258V7.98253H5.73486V2ZM10.5942 9.0776H4.50118V15.5167H5.73992V13.4856L10.5942 9.0776ZM6.84986 13.9715V19.5565L11.4299 15.5225V9.81146L6.84986 13.9715ZM12.5704 15.4691L17.1577 19.4994V16.6118H17.1518V13.9663L12.5704 9.80608V15.4691ZM18.2663 15.5167H19.4992V9.0776H13.4516L18.2663 13.4399V15.5167ZM17.1505 7.98253V4.51888L13.3911 7.98253H17.1505ZM10.6028 7.98253L6.84346 4.51888V7.98253H10.6028Z" />
+const OrchardLogo = ({ size = 24, className = "" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 22C12 22 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 22 12 22Z" />
+    <path d="M12 22V12" />
+    <path d="M12 16C9 14 8 11 8 11" />
   </svg>
 );
 
 const ChatHeader = ({ title, isLoading, isDark, onToggleTheme, onMenuToggle, sidebarOpen }) => {
-  const headerBg      = isDark ? "rgba(8,8,8,0.88)"          : "rgba(248,248,246,0.88)";
-  const headerBorder  = isDark ? "rgba(255,255,255,0.05)"    : "rgba(0,0,0,0.07)";
-  const menuBtn       = isDark ? "text-white/40 hover:text-white/80 hover:bg-white/6"   : "text-black/40 hover:text-black/80 hover:bg-black/6";
-  const logoText      = isDark ? "text-white/60"             : "text-black/55";
-  const thinkingDot   = isDark ? "bg-white/40"               : "bg-black/30";
-  const thinkingText  = isDark ? "text-white/25"             : "text-black/30";
-  const themeBtn      = isDark ? "text-white/35 hover:text-amber-300 hover:bg-white/6"  : "text-black/40 hover:text-indigo-500 hover:bg-black/6";
-  const shareBtn      = isDark ? "text-white/35 hover:text-white/65 hover:bg-white/6 border-white/8"  : "text-black/35 hover:text-black/65 hover:bg-black/6 border-black/10";
+  const menuBtn = "text-[var(--text-secondary)] hover:text-[var(--text-primary)]";
+  const logoText = "text-[var(--text-primary)]";
+  const thinkingDot = "bg-[var(--accent)]";
+  const thinkingText = "text-[var(--text-secondary)]";
+  const themeBtn = "text-[var(--text-secondary)] hover:text-[var(--text-primary)]";
+  const shareBtn = "text-[var(--text-secondary)] hover:text-[var(--text-primary)] border-[var(--border)]";
 
   return (
     <motion.header
@@ -26,8 +36,8 @@ const ChatHeader = ({ title, isLoading, isDark, onToggleTheme, onMenuToggle, sid
       transition={{ duration: 0.35, delay: 0.05 }}
       className="flex items-center justify-between px-4 shrink-0"
       style={{
-        background: headerBg,
-        borderBottom: `1px solid ${headerBorder}`,
+        background: "var(--bg-base)",
+        borderBottom: "1px solid var(--border)",
         backdropFilter: "blur(20px)",
         height: "52px",
         transition: "background 0.3s ease",
@@ -49,17 +59,20 @@ const ChatHeader = ({ title, isLoading, isDark, onToggleTheme, onMenuToggle, sid
               </motion.div>
             ) : (
               <motion.div key="menu" initial={{ rotate: 45, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -45, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <PerplexityLogo size={18} className={logoText} />
+                <Menu size={18} />
               </motion.div>
             )}
           </AnimatePresence>
         </motion.button>
 
-        <div className="flex items-center gap-2">
-          <span className={`text-sm font-medium tracking-tight ${logoText}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            Perplexity
-          </span>
-        </div>
+        {!sidebarOpen && (
+          <div className="flex items-center gap-2 ml-1">
+            <OrchardLogo size={20} className="text-[var(--accent)]" />
+            <span className={`text-sm font-serif font-medium tracking-tight ${logoText}`}>
+              Orchard AI
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Right: thinking indicator + theme toggle + share */}
@@ -72,11 +85,10 @@ const ChatHeader = ({ title, isLoading, isDark, onToggleTheme, onMenuToggle, sid
             className="hidden sm:flex items-center gap-1.5 mr-1"
           >
             <div className={`w-1.5 h-1.5 rounded-full ${thinkingDot}`} />
-            <span className={`text-xs font-mono-dm ${thinkingText}`}>thinking…</span>
+            <span className={`text-xs font-mono ${thinkingText}`}>thinking…</span>
           </motion.div>
         )}
 
-        {/* Theme toggle — Sun in dark mode, Moon in light mode */}
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.92 }}
