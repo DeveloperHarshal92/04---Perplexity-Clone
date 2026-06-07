@@ -1,103 +1,53 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, MessageSquare, X, Home, Compass, LayoutGrid, History, Settings, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
-// ─── Strip markdown from titles ───────────────────────────────────────────────
-const stripMarkdown = (text) => {
-  if (!text) return "";
-  return text
-    .replace(/\*\*(.*?)\*\*/g, "$1")
-    .replace(/\*(.*?)\*/g, "$1")
-    .replace(/`(.*?)`/g, "$1")
-    .replace(/#{1,6}\s*/g, "")
-    .replace(/\[(.*?)\]\(.*?\)/g, "$1")
-    .trim();
-};
-
-// ─── Perplexity SVG Logo ──────────────────────────────────────────────────────
-const PerplexityLogo = ({ size = 18, className = "" }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={size} height={size} className={className} fill="currentColor">
-    <path d="M5.73486 2L11.4299 7.24715V7.24595V2.01211H12.5385V7.27063L18.2591 2V7.98253H20.6078V16.6118H18.2663V21.9389L12.5385 16.9066V21.9967H11.4299V16.9896L5.74131 22V16.6118H3.39258V7.98253H5.73486V2ZM10.5942 9.0776H4.50118V15.5167H5.73992V13.4856L10.5942 9.0776ZM6.84986 13.9715V19.5565L11.4299 15.5225V9.81146L6.84986 13.9715ZM12.5704 15.4691L17.1577 19.4994V16.6118H17.1518V13.9663L12.5704 9.80608V15.4691ZM18.2663 15.5167H19.4992V9.0776H13.4516L18.2663 13.4399V15.5167ZM17.1505 7.98253V4.51888L13.3911 7.98253H17.1505ZM10.6028 7.98253L6.84346 4.51888V7.98253H10.6028Z" />
-  </svg>
-);
-
-// ─── Sidebar Chat Item ────────────────────────────────────────────────────────
-const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete, isDark }) => (
-  <motion.div
-    layout
-    initial={{ opacity: 0, x: -12 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -8 }}
-    whileHover={{ x: 2 }}
+const SidebarChatItem = ({ chatItem, isActive, onClick, onDelete }) => (
+  <div 
     onClick={onClick}
-    className={`
-      group relative flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 border
-      ${isActive
-        ? isDark ? "bg-white/10 border-white/10" : "bg-black/7 border-black/10"
-        : isDark ? "border-transparent hover:bg-white/5" : "border-transparent hover:bg-black/5"
-      }
-    `}
+    className="chat-row relative group cursor-pointer flex items-center justify-between px-sm py-xs hover:bg-white/5 rounded-lg transition-all"
   >
-    {/* Active left-edge indicator */}
-    {isActive && (
-      <motion.div
-        layoutId="activeIndicator"
-        className={`absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full ${isDark ? "bg-white/60" : "bg-black/40"}`}
-      />
-    )}
-
-    <MessageSquare
-      size={15}
-      className={`shrink-0 transition-colors ${
-        isActive
-          ? isDark ? "text-white/70" : "text-black/60"
-          : isDark ? "text-white/20" : "text-black/20"
-      }`}
-    />
-
-    <span className={`text-sm truncate flex-1 transition-colors ${
-      isActive
-        ? isDark ? "text-white/80" : "text-black/80"
-        : isDark ? "text-white/40 group-hover:text-white/65" : "text-black/40 group-hover:text-black/65"
-    }`}>
-      {stripMarkdown(chatItem.title) || "New Chat"}
-    </span>
-
-    <button
-      type="button"
+    {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 bg-primary rounded-full"></div>}
+    <div className="flex items-center gap-sm overflow-hidden flex-1 min-w-0">
+      <span className="material-symbols-outlined text-[18px] text-outline shrink-0">chat_bubble</span>
+      <div className={`truncate flex-1 ${isActive ? "text-on-surface" : "text-on-surface-variant"}`}>
+        {chatItem.title ? (
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <span className="truncate">{children}</span>,
+              strong: ({ children }) => <strong className="font-semibold text-primary">{children}</strong>,
+              em: ({ children }) => <em className="italic">{children}</em>,
+              code: ({ children }) => <code className="px-1 py-0.5 rounded bg-white/5 text-primary text-[11px] font-label-mono">{children}</code>
+            }}
+          >
+            {chatItem.title}
+          </ReactMarkdown>
+        ) : (
+          "New Chat"
+        )}
+      </div>
+    </div>
+    <button 
       onClick={(e) => {
         e.stopPropagation();
         onDelete(chatItem.id);
       }}
-      aria-label={`Delete "${stripMarkdown(chatItem.title) || "chat"}"`}
-      className={`
-        shrink-0 p-1 rounded-md
-        opacity-0 group-hover:opacity-100
-        transition-all duration-150
-        ${isDark
-          ? "text-white/25 hover:text-red-400 hover:bg-red-400/12"
-          : "text-black/25 hover:text-red-500 hover:bg-red-500/10"
-        }
-      `}
+      className="trash-icon opacity-0 transition-opacity text-outline hover:text-error shrink-0 ml-2"
     >
-      <Trash2 size={14} />
+      <span className="material-symbols-outlined text-[18px]">delete</span>
     </button>
-  </motion.div>
+  </div>
 );
 
-// ─── Sidebar ──────────────────────────────────────────────────────────────────
-const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, isOpen, onClose, isDark }) => {
+const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, isOpen, onClose }) => {
   const chatList = Object.values(chats);
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
 
   const avatarLetter = user?.username?.charAt(0).toUpperCase() || "U";
-
-  const panel = isDark
-    ? { bg: "#111111", border: "rgba(255,255,255,0.07)", divider: "rgba(255,255,255,0.06)", faint: "rgba(255,255,255,0.05)" }
-    : { bg: "#f8f8f6", border: "rgba(0,0,0,0.08)",       divider: "rgba(0,0,0,0.07)",       faint: "rgba(0,0,0,0.05)"       };
 
   const handleProfileClick = () => {
     onClose();
@@ -105,130 +55,80 @@ const Sidebar = ({ chats, currentChatId, onOpenChat, onNewChat, onDeleteChat, is
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.aside
-          key="sidebar"
-          initial={{ x: -280, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -280, opacity: 0 }}
-          transition={{ type: "spring", damping: 30, stiffness: 300 }}
-          className="fixed top-0 left-0 h-full z-50 w-[260px] flex flex-col"
-          style={{ background: panel.bg, borderRight: `1px solid ${panel.border}` }}
-        >
-          {/* Logo + Close */}
-          <div className="flex items-center justify-between px-4 py-4 shrink-0" style={{ borderBottom: `1px solid ${panel.divider}` }}>
-            <div className="flex items-center gap-2.5">
-              <PerplexityLogo size={17} className={isDark ? "text-white/80" : "text-black/70"} />
-              <span className={`text-sm font-medium tracking-tight ${isDark ? "text-white/85" : "text-black/80"}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                Perplexity
-              </span>
+    <aside className={`fixed left-0 top-0 bottom-0 z-40 ${isOpen ? 'flex' : 'hidden'} flex-col p-sm w-[260px] bg-surface-container/90 backdrop-blur-2xl border-r border-white/5 transition-all duration-300 ease-in-out`}>
+      {/* Sidebar Header */}
+      <div className="flex items-center justify-between mb-lg px-xs">
+        <div className="flex items-center gap-xs">
+          <img alt="Orchard AI Logo" className="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLttygO57vcpMbS9IhQtnYFUvW0rthLyZ1JFio4pieRXM4j6x7I7RycZVyPX3lP94t347N6RqmNdMybWfYy4EfUBiMB6qguKHJf9nkIcAIMuTTUZraYC1uM7VNL_AgoTeUd4ADRwBm72B55QlOiy2G_ISHI4CMBwK0eT_vU6LM_9qVl4RoO8yVJ0U4OdqtdoXRMG9bQNcHuv8qV8dcqNQ3jIHNqb4cScQv-H_9kgWEiS2_z1G9DPgPc2KQ"/>
+          <span className="font-h2 text-h2 text-primary font-semibold">Orchard AI</span>
+        </div>
+        <button className="text-on-surface-variant hover:bg-white/5 p-unit rounded-lg transition-colors md:hidden" onClick={onClose}>
+          <span className="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      {/* Action: New Thread */}
+      <button 
+        onClick={onNewChat}
+        className="flex items-center justify-between w-full p-sm mb-md rounded-xl border border-white/10 hover:bg-white/5 transition-all group"
+      >
+        <span className="font-body-md text-on-surface-variant group-hover:text-on-surface">New Thread</span>
+        <span className="material-symbols-outlined text-primary">add</span>
+      </button>
+
+      {/* Main Nav */}
+      <nav className="space-y-unit mb-lg">
+        <a className="flex items-center gap-sm px-sm py-xs bg-primary-container text-on-primary-container rounded-lg font-medium transition-all cursor-pointer">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
+          <span>Home</span>
+        </a>
+        <a className="flex items-center gap-sm px-sm py-xs text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg transition-all cursor-pointer">
+          <span className="material-symbols-outlined">explore</span>
+          <span>Discover</span>
+        </a>
+        <a className="flex items-center gap-sm px-sm py-xs text-on-surface-variant hover:text-on-surface hover:bg-white/5 rounded-lg transition-all cursor-pointer">
+          <span className="material-symbols-outlined">folder_shared</span>
+          <span>Spaces</span>
+        </a>
+      </nav>
+
+      {/* History Section */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <h3 className="font-label-mono text-[11px] uppercase tracking-widest text-outline mb-sm px-sm">History</h3>
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-unit pr-xs">
+          {chatList.length === 0 ? (
+            <div className="px-sm text-on-surface-variant text-sm">No threads yet</div>
+          ) : (
+            chatList.map((chatItem) => (
+              <SidebarChatItem
+                key={chatItem.id}
+                chatItem={chatItem}
+                isActive={chatItem.id === currentChatId}
+                onClick={() => onOpenChat(chatItem.id)}
+                onDelete={onDeleteChat}
+              />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Bottom User Info */}
+      <div className="mt-auto pt-sm border-t border-white/5">
+        <div className="flex items-center justify-between p-xs hover:bg-white/5 rounded-xl cursor-pointer transition-all" onClick={handleProfileClick}>
+          <div className="flex items-center gap-sm">
+            <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-semibold text-[14px]">
+              {avatarLetter}
             </div>
-            <button
-              onClick={onClose}
-              aria-label="Close sidebar"
-              className={`p-1.5 rounded-lg transition-colors ${isDark ? "text-white/30 hover:text-white/70 hover:bg-white/8" : "text-black/30 hover:text-black/70 hover:bg-black/6"}`}
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          {/* New Thread */}
-          <div className="px-3 pt-3 pb-2 shrink-0">
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              onClick={onNewChat}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all border ${
-                isDark
-                  ? "text-white/60 hover:text-white/85 hover:bg-white/5 border-white/8"
-                  : "text-black/55 hover:text-black/85 hover:bg-black/5 border-black/10"
-              }`}
-            >
-              <Plus size={16} />
-              <span>New thread</span>
-            </motion.button>
-          </div>
-
-          {/* Nav */}
-          <div className="px-3 pb-2 space-y-0.5 shrink-0">
-            {[{ icon: Home, label: "Home" }, { icon: Compass, label: "Discover" }, { icon: LayoutGrid, label: "Spaces" }].map(({ icon: Icon, label }) => (
-              <div
-                key={label}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all ${
-                  isDark ? "text-white/40 hover:text-white/70 hover:bg-white/5" : "text-black/40 hover:text-black/70 hover:bg-black/5"
-                }`}
-              >
-                <Icon size={16} />
-                <span className="text-sm">{label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* History header */}
-          <div className="px-3 pt-3 shrink-0" style={{ borderTop: `1px solid ${panel.faint}` }}>
-            <div className="flex items-center gap-2 px-3 mb-2">
-              <History size={13} className={isDark ? "text-white/25" : "text-black/25"} />
-              <span className={`text-xs uppercase tracking-widest font-mono-dm ${isDark ? "text-white/25" : "text-black/25"}`}>
-                History
-              </span>
+            <div className="flex flex-col">
+              <span className="text-on-surface font-medium truncate max-w-[120px]">{user?.username || "My Account"}</span>
             </div>
           </div>
-
-          {/* Chat list */}
-          <div className="flex-1 px-3 overflow-y-auto scrollbar-thin space-y-0.5 pb-4">
-            {chatList.length === 0 ? (
-              <div className="px-3 py-6 text-center">
-                <p className={`text-xs font-mono-dm ${isDark ? "text-white/15" : "text-black/20"}`}>No threads yet</p>
-              </div>
-            ) : (
-              <AnimatePresence>
-                {chatList.map((chatItem) => (
-                  <SidebarChatItem
-                    key={chatItem.id}
-                    chatItem={chatItem}
-                    isActive={chatItem.id === currentChatId}
-                    onClick={() => onOpenChat(chatItem.id)}
-                    onDelete={onDeleteChat}
-                    isDark={isDark}
-                  />
-                ))}
-              </AnimatePresence>
-            )}
-          </div>
-
-          {/* ── User — clicking opens Profile page ── */}
-          <div className="px-3 py-3 shrink-0" style={{ borderTop: `1px solid ${panel.divider}` }}>
-            <motion.button
-              type="button"
-              whileHover={{ x: 2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleProfileClick}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all ${
-                isDark ? "hover:bg-white/5" : "hover:bg-black/4"
-              }`}
-              aria-label="View profile"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                {/* Avatar initial */}
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white shrink-0"
-                  style={{ background: "linear-gradient(135deg, #4f46e5, #7c3aed)" }}
-                >
-                  {avatarLetter}
-                </div>
-                <div className="flex flex-col items-start min-w-0">
-                  <span className={`text-sm truncate max-w-[140px] ${isDark ? "text-white/55" : "text-black/55"}`}>
-                    {user?.username || "My Account"}
-                  </span>
-                </div>
-              </div>
-              <Settings size={14} className={isDark ? "text-white/20" : "text-black/25"} />
-            </motion.button>
-          </div>
-        </motion.aside>
-      )}
-    </AnimatePresence>
+          <button className="text-on-surface-variant hover:text-on-surface transition-colors" onClick={(e) => { e.stopPropagation(); handleProfileClick(); }}>
+            <span className="material-symbols-outlined text-[20px]">settings</span>
+          </button>
+        </div>
+      </div>
+    </aside>
   );
 };
 

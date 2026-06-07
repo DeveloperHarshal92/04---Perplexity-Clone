@@ -1,9 +1,8 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Paperclip, Globe, X, FileText, Image as ImageIcon } from "lucide-react";
+import { toast } from "react-hot-toast";
 
-// ─── File Chip ─────────────────────────────────────────────────────────────────
-const FileChip = ({ file, onRemove, isDark }) => {
+const FileChip = ({ file, onRemove }) => {
   const isImage = file.type?.startsWith("image/");
   const [thumb, setThumb] = React.useState(null);
 
@@ -21,42 +20,30 @@ const FileChip = ({ file, onRemove, isDark }) => {
       ? `${(file.size / 1024).toFixed(0)}KB`
       : `${(file.size / (1024 * 1024)).toFixed(1)}MB`;
 
-  const chipBg     = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)";
-  const chipBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.09)";
-  const thumbBg    = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
-  const iconColor  = isDark ? "text-white/25"          : "text-black/25";
-  const nameText   = isDark ? "text-white/65"          : "text-black/60";
-  const sizeText   = isDark ? "text-white/20"          : "text-black/25";
-  const removeBtn  = isDark ? "text-white/20 hover:text-white/70 hover:bg-white/10" : "text-black/20 hover:text-black/60 hover:bg-black/8";
-
   return (
     <motion.div
       layout
       initial={{ opacity: 0, scale: 0.88, y: 4 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.82, y: 2 }}
-      transition={{ type: "spring", damping: 24, stiffness: 340 }}
-      className="flex items-center gap-2 pl-1.5 pr-2 py-1.5 rounded-lg shrink-0"
-      style={{ background: chipBg, border: `1px solid ${chipBorder}`, maxWidth: "180px" }}
+      className="flex items-center gap-2 pl-1.5 pr-2 py-1.5 rounded-lg shrink-0 bg-surface-container border border-white/5"
+      style={{ maxWidth: "180px" }}
     >
-      <div
-        className="shrink-0 w-7 h-7 rounded-md overflow-hidden flex items-center justify-center"
-        style={{ background: thumbBg }}
-      >
+      <div className="shrink-0 w-7 h-7 rounded-md overflow-hidden flex items-center justify-center bg-surface-variant">
         {thumb ? (
           <img src={thumb} alt="" className="w-full h-full object-cover" />
         ) : (
-          <span className={iconColor}>
-            {isImage ? <ImageIcon size={14} /> : <FileText size={14} />}
+          <span className="text-on-surface-variant material-symbols-outlined text-[14px]">
+            {isImage ? "image" : "description"}
           </span>
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className={`text-xs truncate leading-none mb-0.5 ${nameText}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>
+        <p className="text-[12px] font-sans truncate leading-none mb-0.5 text-on-surface-variant">
           {file.name}
         </p>
-        <p className={`text-[10px] ${sizeText}`} style={{ fontFamily: "'DM Mono', monospace" }}>
+        <p className="text-[10px] font-label-mono text-outline">
           {sizeLabel}
         </p>
       </div>
@@ -64,16 +51,15 @@ const FileChip = ({ file, onRemove, isDark }) => {
       <button
         type="button"
         onClick={() => onRemove(file.id)}
-        className={`shrink-0 p-0.5 rounded transition-all ${removeBtn}`}
+        className="shrink-0 p-0.5 rounded transition-all text-outline hover:text-on-surface hover:bg-white/5"
         aria-label={`Remove ${file.name}`}
       >
-        <X size={12} />
+        <span className="material-symbols-outlined text-[14px]">close</span>
       </button>
     </motion.div>
   );
 };
 
-// ─── ChatInput ─────────────────────────────────────────────────────────────────
 const ChatInput = ({
   value,
   onChange,
@@ -81,10 +67,96 @@ const ChatInput = ({
   attachedFiles = [],
   onFileAttach,
   onRemoveFile,
-  isDark,
+  isLoading
 }) => {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
+    };
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Browser does not support Speech Recognition.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    let currentBaseValue = value; // Capture the value at the start of recognition
+
+    recognition.onstart = () => {
+      setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      // Update the main value with what we had + new final + interim
+      const newValue = (currentBaseValue + " " + finalTranscript + interimTranscript).trim();
+      onChange(newValue);
+      
+      // Update base value if we got final text, so next interim appends correctly
+      if (finalTranscript) {
+        currentBaseValue = (currentBaseValue + " " + finalTranscript).trim();
+      }
+      
+      // Auto adjust height
+      if (textareaRef.current) {
+         textareaRef.current.style.height = "auto";
+         textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + "px";
+      }
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error === 'not-allowed') {
+        toast.error("Microphone permission denied.");
+      } else if (event.error !== 'aborted') {
+        toast.error(`Speech recognition error: ${event.error}`);
+      }
+      setIsListening(false);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+    } catch (e) {
+      toast.error("Could not start speech recognition.");
+    }
+  };
 
   useEffect(() => {
     const handler = (e) => {
@@ -100,13 +172,16 @@ const ChatInput = ({
   const handleChange = (e) => {
     onChange(e.target.value);
     e.target.style.height = "auto";
-    e.target.style.height = Math.min(e.target.scrollHeight, 180) + "px";
+    e.target.style.height = Math.min(e.target.scrollHeight, 200) + "px";
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      onSubmit(e);
+      if (!isLoading) {
+        onSubmit(e);
+        if (textareaRef.current) textareaRef.current.style.height = "44px";
+      }
     }
   };
 
@@ -119,149 +194,99 @@ const ChatInput = ({
 
   const canSend = value.trim() || attachedFiles.length > 0;
 
-  // Theme tokens
-  const gradientFrom   = isDark ? "#080808"                     : "#f2f2ef";
-  const formBg         = isDark ? "#161616"                     : "#ffffff";
-  const formBorder     = isDark ? "rgba(255,255,255,0.09)"      : "rgba(0,0,0,0.10)";
-  const formShadow     = isDark ? "0 4px 24px rgba(0,0,0,0.5)" : "0 4px 24px rgba(0,0,0,0.08)";
-  const textareaClass  = isDark
-    ? "text-white/80 placeholder-white/18"
-    : "text-black/75 placeholder-black/20";
-  const toolbarBorder  = isDark ? "rgba(255,255,255,0.05)"      : "rgba(0,0,0,0.06)";
-  const iconBtn        = isDark
-    ? "text-white/22 hover:text-white/65 hover:bg-white/6"
-    : "text-black/25 hover:text-black/60 hover:bg-black/5";
-  const hintText       = isDark ? "text-white/12"               : "text-black/15";
-  const footerText     = isDark ? "text-white/12"               : "text-black/15";
-  const sendActiveBg      = isDark ? "rgba(255,255,255,0.9)"    : "rgba(0,0,0,0.85)";
-  const sendActiveColor   = isDark ? "#080808"                  : "#f2f2ef";
-  const sendInactiveBg    = isDark ? "rgba(255,255,255,0.06)"   : "rgba(0,0,0,0.06)";
-  const sendInactiveColor = isDark ? "rgba(255,255,255,0.2)"    : "rgba(0,0,0,0.2)";
-  const sendInactiveBorder = isDark ? "rgba(255,255,255,0.06)"  : "rgba(0,0,0,0.06)";
-
   return (
-    <div
-      className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 pb-5 pt-10"
-      style={{ background: `linear-gradient(to top, ${gradientFrom} 55%, transparent)` }}
-    >
-      <div className="max-w-2xl mx-auto">
-        <motion.form
-          initial={{ y: 16, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.45, delay: 0.1 }}
-          onSubmit={onSubmit}
-          className="flex flex-col rounded-2xl overflow-hidden"
-          style={{ background: formBg, border: `1px solid ${formBorder}`, boxShadow: formShadow }}
-        >
-          {/* File chips */}
-          <AnimatePresence initial={false}>
-            {attachedFiles.length > 0 && (
-              <motion.div
-                key="chips-zone"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.18, ease: "easeInOut" }}
-                style={{ overflow: "hidden" }}
+    <div className="w-full flex flex-col justify-center p-md pb-lg absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/80 to-transparent">
+      <div className="w-full max-w-[672px] mx-auto">
+        <AnimatePresence initial={false}>
+          {attachedFiles.length > 0 && (
+            <motion.div
+              key="chips-zone"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden mb-2"
+            >
+              <div
+                className="flex flex-wrap gap-2 pt-2 pb-1 overflow-y-auto custom-scrollbar"
+                style={{ maxHeight: "112px" }}
               >
-                <div
-                  className="flex flex-wrap gap-2 px-4 pt-3 pb-5 overflow-y-auto"
-                  style={{ maxHeight: "112px", scrollbarWidth: "none" }}
-                >
-                  <AnimatePresence>
-                    {attachedFiles.map((file) => (
-                      <FileChip key={file.id} file={file} onRemove={onRemoveFile} isDark={isDark} />
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                <AnimatePresence>
+                  {attachedFiles.map((file) => (
+                    <FileChip key={file.id} file={file} onRemove={onRemoveFile} />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Textarea */}
-          <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            className={`w-full bg-transparent px-4 pt-3.5 pb-2 outline-none resize-none text-sm leading-relaxed ${textareaClass}`}
-            placeholder="How can I assist you today..."
-            rows="1"
-            style={{
-              maxHeight: "180px",
-              fontFamily: "'DM Sans', sans-serif",
-              overflowY: "auto",
-              scrollbarWidth: "none",
-            }}
-          />
-
-          {/* Toolbar */}
-          <div
-            className="flex justify-between items-center px-3 pb-2.5 pt-1.5"
-            style={{ borderTop: `1px solid ${toolbarBorder}` }}
-          >
-            <div className="flex gap-0.5">
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                className="hidden"
-                onChange={handleFileSelect}
-                accept="image/*,.pdf,.doc,.docx,.txt,.csv,.json"
-              />
-              <motion.button
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (!isLoading) {
+            onSubmit(e);
+            if (textareaRef.current) textareaRef.current.style.height = "44px";
+          }
+        }}>
+          <div className="glass-bg w-full rounded-2xl flex items-end p-[12px] gap-sm transition-all shadow-2xl !border-none outline-none">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+              accept="image/*,.pdf,.doc,.docx,.txt,.csv,.json"
+              disabled={isLoading}
+            />
+            <button 
+              type="button" 
+              className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10 text-on-surface-variant transition-colors shrink-0 disabled:opacity-50"
+              onClick={() => fileInputRef.current?.click()}
+              title="Attach File"
+              disabled={isLoading}
+            >
+              <span className="material-symbols-outlined">attach_file</span>
+            </button>
+            <textarea 
+              ref={textareaRef}
+              value={value}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
+              className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-on-surface placeholder:text-outline py-2 resize-none max-h-[200px] min-h-[44px] disabled:opacity-50" 
+              placeholder="Ask Orchard anything..." 
+              rows="1"
+            ></textarea>
+            <button 
+              type="button" 
+              className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors shrink-0 disabled:opacity-50 ${
+                isListening ? "bg-error/20 text-error animate-pulse" : "hover:bg-white/10 text-on-surface-variant"
+              }`}
+              title="Voice Input"
+              disabled={isLoading}
+              onClick={toggleListening}
+            >
+              <span className="material-symbols-outlined">{isListening ? "mic_off" : "mic"}</span>
+            </button>
+            
+            {isLoading ? (
+              <button 
                 type="button"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => fileInputRef.current?.click()}
-                className={`p-2 rounded-lg transition-all ${iconBtn}`}
-                title="Attach file"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-surface-variant text-on-surface-variant hover:brightness-110 transition-all shadow-lg active:scale-95 shrink-0"
+                title="Stop generating"
               >
-                <Paperclip size={17} />
-              </motion.button>
-              {/* <motion.button
-                type="button"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className={`p-2 rounded-lg transition-all ${iconBtn}`}
-                title="Search web"
-              >
-                <Globe size={17} />
-              </motion.button> */}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-xs hidden sm:block ${hintText}`}
-                style={{ fontFamily: "'DM Mono', monospace" }}
-              >
-                ⇧↵ newline
-              </span>
-              <motion.button
+                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>stop</span>
+              </button>
+            ) : (
+              <button 
                 type="submit"
                 disabled={!canSend}
-                whileHover={canSend ? { scale: 1.06 } : {}}
-                whileTap={canSend ? { scale: 0.94 } : {}}
-                className="flex items-center justify-center w-8 h-8 rounded-xl transition-all disabled:opacity-25 disabled:cursor-not-allowed"
-                style={
-                  canSend
-                    ? { background: sendActiveBg, color: sendActiveColor }
-                    : { background: sendInactiveBg, color: sendInactiveColor, border: `1px solid ${sendInactiveBorder}` }
-                }
-                aria-label="Send message"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container hover:brightness-110 transition-all shadow-lg active:scale-95 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send size={15} />
-              </motion.button>
-            </div>
+                <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>arrow_upward</span>
+              </button>
+            )}
           </div>
-        </motion.form>
-
-        <p
-          className={`text-center text-xs mt-2.5 ${footerText}`}
-          style={{ fontFamily: "'DM Mono', monospace", letterSpacing: "0.01em" }}
-        >
-          Perplexity can make mistakes — verify critical information
-        </p>
+        </form>
       </div>
     </div>
   );

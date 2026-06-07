@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Check } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTypewriter } from "../hooks/useTypewriter";
@@ -16,7 +15,7 @@ const blinkStyle =
       })()
     : null;
 
-const MessageBubble = ({ message, index, isDark, isLatest = false }) => {
+const MessageBubble = ({ message, index, isLatest = false }) => {
   const [copied, setCopied] = useState(false);
 
   const { displayed, isDone } = useTypewriter(
@@ -31,121 +30,106 @@ const MessageBubble = ({ message, index, isDark, isLatest = false }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // ── User bubble ──────────────────────────────────────────────────────────
-  if (message.role === "user") {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: index * 0.02 }}
-        className="flex justify-end"
-      >
-        <div
-          className="px-4 py-3 rounded-2xl rounded-br-sm text-sm leading-relaxed max-w-[80%]"
-          style={{
-            background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
-            border:     `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.09)"}`,
-            color:      isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.80)",
-          }}
-        >
-          {message.content}
-        </div>
-      </motion.div>
-    );
-  }
-
-  // ── AI bubble — clean prose, no avatar ──────────────────────────────────
-  const prose     = isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.72)";
-  const proseMid  = isDark ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,0.60)";
-  const proseWeak = isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.40)";
-  const codeInlineBg     = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)";
-  const codeInlineBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)";
-  const codeBlockBg      = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)";
-  const codeBlockBorder  = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
-  const blockquoteBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)";
-  const hrColor          = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
-  const tdBorder         = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)";
-  const thBorder         = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-  const copyBtnBg        = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)";
-  const copyBtnBorder    = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)";
-
+  // ── AI bubble — pure prose ──────────────────────────────────
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.02 }}
-      className="group"
+      className="flex flex-col items-start w-full group"
     >
-      <div className="relative">
-        <div className="prose prose-sm max-w-none leading-[1.75]" style={{ fontFamily: "'DM Sans', sans-serif", color: prose }}>
+      <div className="w-full text-on-surface space-y-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+            <span className="material-symbols-outlined text-on-primary-container text-sm">auto_awesome</span>
+          </div>
+          <span className="font-headline-md text-headline-md text-primary">Orchard AI</span>
+        </div>
+        
+        <div className="font-body-lg text-body-lg space-y-4 leading-relaxed">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              p:          ({ children }) => <p className="mb-3 last:mb-0" style={{ color: prose }}>{children}</p>,
-              ul:         ({ children }) => <ul className="list-disc pl-5 mb-3 space-y-1" style={{ color: proseMid }}>{children}</ul>,
-              ol:         ({ children }) => <ol className="list-decimal pl-5 mb-3 space-y-1" style={{ color: proseMid }}>{children}</ol>,
-              li:         ({ children }) => <li style={{ color: proseMid }}>{children}</li>,
-              strong:     ({ children }) => <strong style={{ color: isDark ? "rgba(255,255,255,0.90)" : "rgba(0,0,0,0.85)", fontWeight: 600 }}>{children}</strong>,
-              em:         ({ children }) => <em style={{ color: proseWeak }}>{children}</em>,
-              h1:         ({ children }) => <h1 className="font-semibold text-lg mb-2 mt-4" style={{ color: isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.82)" }}>{children}</h1>,
-              h2:         ({ children }) => <h2 className="font-semibold text-base mb-2 mt-3" style={{ color: isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.82)" }}>{children}</h2>,
-              h3:         ({ children }) => <h3 className="font-medium mb-1.5 mt-3" style={{ color: isDark ? "rgba(255,255,255,0.80)" : "rgba(0,0,0,0.78)" }}>{children}</h3>,
-              code: ({ inline, children }) =>
-                inline ? (
-                  <code className="px-1.5 py-0.5 rounded text-xs font-mono" style={{ background: codeInlineBg, color: prose, border: `1px solid ${codeInlineBorder}`, fontFamily: "'DM Mono', monospace" }}>
-                    {children}
-                  </code>
-                ) : (
-                  <pre className="p-4 rounded-xl overflow-x-auto mb-3 text-xs" style={{ background: codeBlockBg, border: `1px solid ${codeBlockBorder}` }}>
-                    <code className="font-mono" style={{ color: proseMid, fontFamily: "'DM Mono', monospace" }}>{children}</code>
-                  </pre>
-                ),
-              blockquote: ({ children }) => <blockquote className="pl-4 my-3 italic" style={{ borderLeft: `2px solid ${blockquoteBorder}`, color: proseWeak }}>{children}</blockquote>,
-              hr:         ()             => <hr className="my-4" style={{ borderColor: hrColor }} />,
-              table:      ({ children }) => <div className="overflow-x-auto mb-3"><table className="w-full text-sm border-collapse">{children}</table></div>,
-              th:         ({ children }) => <th className="text-left px-3 py-2 font-medium text-xs uppercase tracking-wider" style={{ borderBottom: `1px solid ${thBorder}`, color: proseWeak }}>{children}</th>,
-              td:         ({ children }) => <td className="px-3 py-2 text-sm" style={{ borderBottom: `1px solid ${tdBorder}`, color: proseMid }}>{children}</td>,
+              p: ({ children }) => <p className="mb-4">{children}</p>,
+              ul: ({ children }) => <ul className="space-y-3 list-none pl-1 mb-4">{children}</ul>,
+              ol: ({ children }) => <ol className="space-y-3 list-decimal pl-5 mb-4">{children}</ol>,
+              li: ({ children }) => (
+                <li className="flex gap-3">
+                  <span className="text-primary mt-1">•</span>
+                  <span>{children}</span>
+                </li>
+              ),
+              strong: ({ children }) => <strong className="text-primary font-medium">{children}</strong>,
+              em: ({ children }) => <em className="text-on-surface-variant">{children}</em>,
+              h1: ({ children }) => <h1 className="text-display font-display text-on-surface/90 pt-2 mb-4">{children}</h1>,
+              h2: ({ children }) => <h2 className="text-headline-lg font-headline-lg text-on-surface/90 pt-2 mb-4">{children}</h2>,
+              h3: ({ children }) => <h3 className="text-headline-md font-headline-md text-on-surface/90 pt-2 mb-4">{children}</h3>,
+              code: ({ inline, className, children }) => {
+                const match = /language-(\w+)/.exec(className || "");
+                const language = match ? match[1] : "";
+                
+                if (inline) {
+                  return (
+                    <code className="px-1.5 py-0.5 rounded text-[13px] font-label-md bg-surface-container-high border border-outline-variant/30 text-primary">
+                      {children}
+                    </code>
+                  );
+                }
+
+                return (
+                  <div className="relative group/code mt-6 rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low mb-6">
+                    <div className="flex items-center justify-between px-4 py-2 bg-surface-container-high/50 border-b border-outline-variant/30">
+                      <span className="text-label-sm font-label-sm text-on-surface-variant">{language || "code"}</span>
+                      <span 
+                        className="material-symbols-outlined text-sm text-on-surface-variant cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => navigator.clipboard.writeText(String(children).replace(/\n$/, ''))}
+                      >
+                        content_copy
+                      </span>
+                    </div>
+                    <pre className="p-6 overflow-x-auto text-label-md font-label-md text-secondary leading-relaxed">
+                      <code>{children}</code>
+                    </pre>
+                  </div>
+                );
+              },
+              blockquote: ({ children }) => <blockquote className="pl-4 my-4 italic border-l-2 border-outline-variant/30 text-on-surface-variant">{children}</blockquote>,
+              hr: () => <hr className="my-6 border-outline-variant/30" />,
+              table: ({ children }) => <div className="overflow-x-auto mb-4"><table className="w-full text-sm border-collapse">{children}</table></div>,
+              th: ({ children }) => <th className="text-left px-3 py-2 font-medium text-xs uppercase tracking-wider border-b border-outline-variant/30 text-on-surface-variant">{children}</th>,
+              td: ({ children }) => <td className="px-3 py-2 text-[15px] border-b border-outline-variant/30 text-on-surface">{children}</td>,
             }}
           >
             {displayed}
           </ReactMarkdown>
 
-          {/* Blinking cursor — visible only while typewriter is running */}
+          {/* Blinking cursor */}
           {!isDone && (
             <span
-              className="inline-block w-[2px] h-[0.85em] align-middle ml-[1px] rounded-sm"
-              style={{
-                background: isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.45)",
-                animation: "tw-blink 0.9s step-end infinite",
-              }}
+              className="inline-block w-[2px] h-[0.85em] align-middle ml-[2px] rounded-sm bg-primary"
+              style={{ animation: "tw-blink 0.9s step-end infinite" }}
             />
           )}
         </div>
 
-        {/* Copy button — only shown after typing is done */}
+        {/* Prose Actions */}
         {isDone && (
-          <motion.button
-            onClick={handleCopy}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg flex items-center gap-1.5"
-            style={{ background: copyBtnBg, border: `1px solid ${copyBtnBorder}` }}
-            title="Copy"
-          >
-            <AnimatePresence mode="wait">
-              {copied ? (
-                <motion.div key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center gap-1">
-                  <Check size={11} style={{ color: proseWeak }} />
-                  <span className="text-xs font-mono-dm" style={{ color: proseWeak }}>Copied</span>
-                </motion.div>
-              ) : (
-                <motion.div key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} className="flex items-center gap-1">
-                  <Copy size={11} style={{ color: proseWeak }} />
-                  <span className="text-xs font-mono-dm" style={{ color: `${proseWeak}99` }}>Copy</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.button>
+          <div className="flex items-center gap-4 pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              onClick={handleCopy}
+              className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors py-1 pr-3" 
+              title="Copy response"
+            >
+              <span className="material-symbols-outlined text-lg">{copied ? "check" : "content_copy"}</span>
+              <span className="text-label-sm font-label-sm">{copied ? "Copied" : "Copy"}</span>
+            </button>
+            <button className="text-on-surface-variant hover:text-primary transition-colors">
+              <span className="material-symbols-outlined text-lg">refresh</span>
+            </button>
+            <button className="text-on-surface-variant hover:text-primary transition-colors">
+              <span className="material-symbols-outlined text-lg">thumb_up</span>
+            </button>
+          </div>
         )}
       </div>
     </motion.div>
