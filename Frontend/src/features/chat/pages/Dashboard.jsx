@@ -3,17 +3,16 @@ import { useSelector } from "react-redux";
 import { useChat } from "../hooks/useChat";
 import { Toaster } from "react-hot-toast";
 
-import AmbientBackground from "../components/AmbientBackground";
+import AmbientBackground from "../components/Ambientbackground";
 import Sidebar from "../components/Sidebar";
-import ChatHeader from "../components/ChatHeader";
-import ChatFeed from "../components/ChatFeed";
-import ChatInput from "../components/ChatInput";
+import ChatHeader from "../components/Chatheader";
+import ChatFeed from "../components/Chatfeed";
+import ChatInput from "../components/Chatinput";
 
 const Dashboard = () => {
   const chat = useChat();
   const [chatInput, setChatInput] = useState("");
-  const [isDark, setIsDark] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
   const activeChatRef = useRef(null);
 
@@ -104,22 +103,24 @@ const Dashboard = () => {
         position="bottom-right"
         toastOptions={{
           style: {
-            background: "#2a2a28",
-            color: "#e4e2de",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
+            background: "#fdfbfa",
+            color: "#27251e",
+            border: "1px solid #d1d1cd",
             borderRadius: "12px",
             fontSize: "13px",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
             fontFamily: "'Inter', sans-serif",
           },
         }}
       />
 
-      <div className={`bg-background text-on-surface font-body-md selection:bg-primary/30 min-h-screen overflow-hidden flex ${isDark ? "dark" : ""}`}>
+      <div className="bg-[#faf8f5] text-[#27251e] min-h-screen overflow-hidden flex selection:bg-[#016a71]/15">
         <AmbientBackground />
 
+        {/* Mobile backdrop */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm sm:hidden"
+            className="fixed inset-0 z-30 bg-[#27251e]/30 backdrop-blur-xs md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -132,23 +133,17 @@ const Dashboard = () => {
           onDeleteChat={handleDeleteChat}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          isDark={isDark}
         />
 
-        <main className={`flex-1 flex flex-col h-screen ${sidebarOpen ? 'md:ml-[260px]' : ''} relative z-10 w-full min-w-0 transition-all duration-300`}>
+        <main className="flex-1 flex flex-col h-screen md:ml-[260px] relative z-10 w-full min-w-0 bg-[#faf8f5] transition-all duration-200">
           <ChatHeader
             title={currentTitle}
             isLoading={isLoading}
-            isDark={isDark}
-            onToggleTheme={() => setIsDark((d) => !d)}
-            onMenuToggle={() => setSidebarOpen((o) => !o)}
-            sidebarOpen={sidebarOpen}
           />
 
           <ChatFeed
             messages={currentMessages}
             isLoading={isLoading}
-            isDark={isDark}
             onSuggestedPrompt={(prompt) => {
               setChatInput(prompt);
             }}
@@ -161,7 +156,6 @@ const Dashboard = () => {
             attachedFiles={attachedFiles}
             onFileAttach={handleFileAttach}
             onRemoveFile={handleRemoveFile}
-            isDark={isDark}
             isLoading={isLoading}
           />
         </main>

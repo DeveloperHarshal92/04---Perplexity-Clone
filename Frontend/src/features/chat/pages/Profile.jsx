@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -12,386 +12,276 @@ import {
   User,
   Calendar,
   LogOut,
-  Edit3,
   Copy,
   Check,
 } from "lucide-react";
+import { useAuth } from "../../auth/hook/useAuth";
+import toast from "react-hot-toast";
 
-const OrchardLogo = ({ size = 24, className = "" }) => (
+const PerplexityIcon = ({ size = 20, className = "" }) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
     width={size}
     height={size}
-    className={className}
+    viewBox="0 0 24 24"
     fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
   >
-    <path d="M12 22C12 22 4 16 4 9C4 5 7 2 12 2C17 2 20 5 20 9C20 16 12 22 12 22Z" />
-    <path d="M12 22V12" />
-    <path d="M12 16C9 14 8 11 8 11" />
+    <path
+      d="M12 2V22M12 12L20 4M12 12L4 4M12 12L20 20M12 12L4 20M2 12H22"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
-const AnimatedStat = ({ value, label, icon: Icon, delay = 0 }) => (
+const StatTile = ({ value, label, icon: Icon, delay = 0 }) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
+    initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] }}
-    className="flex flex-col gap-1.5"
+    transition={{ duration: 0.3, delay }}
+    className="bg-[#fdfbfa] border border-[#d1d1cd] p-5 rounded-[16px] card-subtle-shadow flex flex-col justify-between"
   >
-    <div className="flex items-center gap-2">
-      <Icon size={14} className="text-[var(--text-tertiary)]" />
-      <span className="font-mono text-[10px] tracking-wider uppercase text-[var(--text-secondary)]">
+    <div className="flex items-center gap-2 mb-3">
+      <Icon size={16} className="text-[#016a71]" />
+      <span className="text-[11px] font-mono tracking-wider uppercase text-[#72706b]">
         {label}
       </span>
     </div>
-    <motion.span
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: delay + 0.15 }}
-      className="font-serif font-light text-4xl text-[var(--text-primary)]"
-    >
+    <span className="text-[28px] font-medium text-[#27251e] tracking-tight">
       {value}
-    </motion.span>
+    </span>
   </motion.div>
 );
 
-const InfoRow = ({ icon: Icon, label, value, copiable = false, delay = 0 }) => {
+const InfoRow = ({ icon: Icon, label, value, copiable = false }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    if (!copiable) return;
+    if (!copiable || !value) return;
     navigator.clipboard.writeText(value);
     setCopied(true);
+    toast.success(`${label} copied`);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -8 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.4, delay, ease: [0.16, 1, 0.3, 1] }}
-      className="flex items-center gap-4 py-3.5 group border-b border-[var(--border)] last:border-0"
-    >
-      <Icon size={16} className="text-[var(--text-tertiary)] shrink-0" />
+    <div className="flex items-center gap-3 py-3 border-b border-[#d1d1cd]/50 last:border-0">
+      <Icon size={16} className="text-[#72706b] shrink-0" />
       <div className="flex flex-col min-w-0 flex-1">
-        <span className="font-mono text-[9px] tracking-wider uppercase text-[var(--text-tertiary)] mb-[2px]">
+        <span className="text-[11px] font-mono uppercase tracking-wider text-[#92918b]">
           {label}
         </span>
-        <span className="truncate font-sans text-sm text-[var(--text-secondary)]">
-          {value}
+        <span className="truncate text-[14px] text-[#27251e] font-normal">
+          {value || "Not available"}
         </span>
       </div>
       {copiable && (
         <button
+          type="button"
           onClick={handleCopy}
-          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md bg-[var(--border)]"
-          aria-label={`Copy ${label}`}
+          className="p-1.5 rounded-lg border border-[#d1d1cd] hover:bg-[#f0ede6] text-[#72706b] hover:text-[#27251e] transition-colors"
+          title={`Copy ${label}`}
         >
           {copied ? (
-            <Check size={12} className="text-[var(--accent)]" />
+            <Check size={13} className="text-[#016a71]" />
           ) : (
-            <Copy size={12} className="text-[var(--text-secondary)]" />
+            <Copy size={13} />
           )}
         </button>
       )}
-    </motion.div>
+    </div>
   );
 };
 
 const Profile = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const chats = useSelector((state) => state.chat.chats);
 
   const chatCount = Object.keys(chats).length;
   const totalMessages = Object.values(chats).reduce(
     (sum, c) => sum + (c.messages?.length || 0),
-    0
+    0,
   );
   const memberSince = user?.createdAt
     ? format(new Date(user.createdAt), "MMM yyyy")
-    : "—";
+    : "Active";
   const memberSinceFull = user?.createdAt
     ? format(new Date(user.createdAt), "MMMM d, yyyy")
-    : "—";
+    : "Recent";
+  const { handleLogout } = useAuth();
   const avatarLetter = user?.username?.charAt(0).toUpperCase() || "U";
 
-  const stagger = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.07 } },
+  const handleSignOut = () => {
+    handleLogout();
+    toast.success("Signed out successfully");
+    navigate("/login");
   };
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-        .font-serif { font-family: 'Lora', Georgia, serif; }
-        .font-sans { font-family: 'Inter', system-ui, sans-serif; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-        .profile-scroll::-webkit-scrollbar { display: none; }
-        .profile-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-      `}</style>
+    <div className="bg-[#faf8f5] text-[#27251e] min-h-screen font-sans selection:bg-[#016a71]/15 overflow-y-auto custom-scrollbar">
+      {/* Top Navigation */}
+      <nav className="sticky top-0 z-30 flex items-center justify-between px-6 py-3.5 bg-[#faf8f5]/90 backdrop-blur-md border-b border-[#d1d1cd]">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-[#72706b] hover:text-[#27251e] text-[13px] font-normal transition-colors"
+        >
+          <ArrowLeft size={16} />
+          <span>Back to Search</span>
+        </button>
 
-      <div
-        className="font-sans min-h-screen profile-scroll overflow-y-auto relative dark"
-        style={{ backgroundColor: "var(--bg-base)" }}
-      >
-        <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-          <div
-            className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full blur-[120px] opacity-[0.08]"
-            style={{ background: "radial-gradient(ellipse, var(--accent), transparent 70%)" }}
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-[#27251e] text-[#faf8f5] flex items-center justify-center">
+            <PerplexityIcon size={14} />
+          </div>
+          <span className="font-medium text-[15px] tracking-tight text-[#27251e]">
+            perplexity
+          </span>
+        </div>
+
+        <div className="w-20" />
+      </nav>
+
+      {/* Main Profile Content */}
+      <main className="max-w-[800px] mx-auto px-5 pt-8 pb-16">
+        {/* User Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-5 mb-8 pb-6 border-b border-[#d1d1cd]">
+          <div className="w-18 h-18 rounded-2xl bg-[#016a71] text-white flex items-center justify-center text-[28px] font-medium shadow-sm shrink-0">
+            {avatarLetter}
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <h1 className="text-[24px] font-medium text-[#27251e] tracking-tight">
+                {user?.username || "Account"}
+              </h1>
+              <span className="px-2 py-0.5 rounded-full bg-[#016a71]/10 text-[#016a71] text-[11px] font-mono font-medium">
+                Standard
+              </span>
+            </div>
+            <p className="text-[13px] text-[#72706b]">
+              {user?.email || "Member"}
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <StatTile
+            value={chatCount}
+            label="Threads"
+            icon={MessageSquare}
+            delay={0.1}
+          />
+          <StatTile
+            value={totalMessages}
+            label="Messages"
+            icon={Clock}
+            delay={0.15}
+          />
+          <StatTile
+            value={memberSince}
+            label="Member Since"
+            icon={Calendar}
+            delay={0.2}
           />
         </div>
 
-        <nav
-          className="relative z-20 flex items-center justify-between px-6 py-4 border-b border-[var(--border)]"
-        >
-          <div className="flex items-center gap-3">
-            <motion.button
-              whileHover={{ x: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/")}
-              className="flex items-center gap-2 transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              aria-label="Back to chat"
-            >
-              <ArrowLeft size={16} />
-              <span className="font-mono text-[11px] tracking-wider uppercase">
-                Back
-              </span>
-            </motion.button>
-          </div>
+        {/* 2-Column Info & Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Account Details */}
+          <div className="bg-[#fdfbfa] border border-[#d1d1cd] rounded-[16px] p-5 card-subtle-shadow">
+            <h3 className="text-[12px] font-mono uppercase tracking-wider text-[#92918b] mb-3">
+              Account Details
+            </h3>
 
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-            <OrchardLogo size={18} className="text-[var(--accent)]" />
-            <span className="font-serif font-medium text-[13px] text-[var(--text-primary)]">
-              Orchard AI
-            </span>
-          </div>
-
-          <div className="w-16" />
-        </nav>
-
-        <div className="relative z-10 max-w-4xl mx-auto px-5 sm:px-8 pt-12 pb-24">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-8 mb-16">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="relative shrink-0"
-            >
-              <div
-                className="w-28 h-28 rounded-full flex items-center justify-center relative overflow-hidden bg-[var(--accent)] text-[var(--bg-base)] shadow-lg"
-              >
-                <span className="font-serif text-5xl font-light">
-                  {avatarLetter}
-                </span>
-              </div>
-            </motion.div>
-
-            <div className="flex flex-col gap-1.5 pb-1">
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="font-mono text-[10px] tracking-wider uppercase text-[var(--text-tertiary)]"
-              >
-                User Profile
-              </motion.span>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-                className="font-serif font-light text-5xl tracking-tight text-[var(--text-primary)]"
-              >
-                {user?.username || "Anonymous"}
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="font-mono text-xs text-[var(--text-secondary)] tracking-wide"
-              >
-                {user?.email || ""}
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.38 }}
-                className="flex flex-wrap gap-2 mt-2"
-              >
-                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] font-mono text-[10px] tracking-wide text-[var(--text-secondary)]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-                  Standard Plan
-                </span>
-              </motion.div>
+            <div className="space-y-1">
+              <InfoRow icon={User} label="Username" value={user?.username} />
+              <InfoRow icon={Mail} label="Email" value={user?.email} copiable />
+              <InfoRow icon={Calendar} label="Joined" value={memberSinceFull} />
+              <InfoRow icon={ShieldCheck} label="Status" value="Verified" />
             </div>
           </div>
 
-          <motion.div
-            variants={stagger}
-            initial="hidden"
-            animate="show"
-            className="grid grid-cols-2 sm:grid-cols-3 gap-px mb-px bg-[var(--border)] border border-[var(--border)] rounded-2xl overflow-hidden"
-          >
-            <div className="col-span-1 px-6 py-7 bg-[var(--glass-bg)]" style={{ backdropFilter: "blur(24px) saturate(180%)" }}>
-              <AnimatedStat
-                value={chatCount}
-                label="Threads"
-                icon={MessageSquare}
-                delay={0.2}
-              />
-            </div>
+          {/* Usage & Actions */}
+          <div className="flex flex-col gap-5">
+            {/* Usage */}
+            <div className="bg-[#fdfbfa] border border-[#d1d1cd] rounded-[16px] p-5 card-subtle-shadow">
+              <h3 className="text-[12px] font-mono uppercase tracking-wider text-[#92918b] mb-4">
+                Research Activity
+              </h3>
 
-            <div className="col-span-1 px-6 py-7 bg-[var(--glass-bg)]" style={{ backdropFilter: "blur(24px) saturate(180%)" }}>
-              <AnimatedStat
-                value={totalMessages}
-                label="Messages"
-                icon={Clock}
-                delay={0.28}
-              />
-            </div>
-
-            <div className="col-span-2 sm:col-span-1 px-6 py-7 bg-[var(--glass-bg)]" style={{ backdropFilter: "blur(24px) saturate(180%)" }}>
-              <AnimatedStat
-                value={memberSince}
-                label="Member Since"
-                icon={Calendar}
-                delay={0.36}
-              />
-            </div>
-          </motion.div>
-
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.35 }}
-              className="rounded-2xl p-6 bg-[var(--glass-bg)] border border-[var(--border)]"
-              style={{ backdropFilter: "blur(24px) saturate(180%)" }}
-            >
-              <p className="mb-4 font-mono text-[9px] tracking-wider uppercase text-[var(--text-tertiary)]">
-                Account Details
-              </p>
-
-              <InfoRow icon={User} label="Username" value={user?.username || "—"} delay={0.38} />
-              <InfoRow icon={Mail} label="Email" value={user?.email || "—"} delay={0.41} copiable />
-              <InfoRow icon={Calendar} label="Joined" value={memberSinceFull} delay={0.44} />
-              <InfoRow icon={ShieldCheck} label="Account Status" value={user?.verified ? "Verified" : "Unverified"} delay={0.47} />
-            </motion.div>
-
-            <div className="flex flex-col gap-6">
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.42 }}
-                className="rounded-2xl p-6 bg-[var(--glass-bg)] border border-[var(--border)]"
-                style={{ backdropFilter: "blur(24px) saturate(180%)" }}
-              >
-                <p className="mb-5 font-mono text-[9px] tracking-wider uppercase text-[var(--text-tertiary)]">
-                  Usage
-                </p>
-
-                {[
-                  { label: "Threads", value: chatCount, max: Math.max(chatCount, 10) },
-                  { label: "Messages", value: totalMessages, max: Math.max(totalMessages, 20) },
-                ].map(({ label, value, max }, i) => (
-                  <div key={label} className="mb-4 last:mb-0">
-                    <div className="flex justify-between mb-1.5">
-                      <span className="font-mono text-[10px] tracking-wider text-[var(--text-secondary)]">
-                        {label}
-                      </span>
-                      <span className="font-mono text-[10px] text-[var(--text-secondary)]">
-                        {value}
-                      </span>
-                    </div>
-                    <div className="w-full rounded-full overflow-hidden h-0.5 bg-[var(--border)]">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min((value / max) * 100, 100)}%` }}
-                        transition={{ duration: 0.8, delay: 0.5 + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
-                        className="h-full rounded-full bg-[var(--accent)]"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: 0.5 }}
-                className="rounded-2xl p-5 bg-[var(--glass-bg)] border border-[var(--border)]"
-                style={{ backdropFilter: "blur(24px) saturate(180%)" }}
-              >
-                <p className="mb-4 font-mono text-[9px] tracking-wider uppercase text-[var(--text-tertiary)]">
-                  Actions
-                </p>
-
-                <div className="space-y-2">
-                  <motion.button
-                    whileHover={{ x: 3 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-sans text-[13px]"
-                    onClick={() => navigate("/")}
-                  >
-                    <MessageSquare size={14} className="text-[var(--text-tertiary)]" />
-                    Go to Threads
-                    <span className="ml-auto text-[var(--text-tertiary)]">→</span>
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ x: 3 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-sans text-[13px]"
-                  >
-                    <Edit3 size={14} className="text-[var(--text-tertiary)]" />
-                    Edit Profile
-                    <span className="ml-auto px-1.5 py-0.5 rounded bg-[var(--border)] font-mono text-[9px] tracking-wider text-[var(--text-secondary)]">
-                      soon
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-[12px] mb-1 text-[#72706b]">
+                    <span>Threads Active</span>
+                    <span className="font-mono text-[#27251e]">
+                      {chatCount}
                     </span>
-                  </motion.button>
-
-                  <motion.button
-                    whileHover={{ x: 3 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left bg-red-500/10 border border-red-500/20 text-red-400 font-sans text-[13px]"
-                  >
-                    <LogOut size={14} className="text-red-500" />
-                    Sign Out
-                    <span className="ml-auto text-red-500/50">→</span>
-                  </motion.button>
+                  </div>
+                  <div className="w-full bg-[#f0ede6] h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-[#016a71] h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min((chatCount / 20) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-              </motion.div>
+
+                <div>
+                  <div className="flex justify-between text-[12px] mb-1 text-[#72706b]">
+                    <span>Total Queries</span>
+                    <span className="font-mono text-[#27251e]">
+                      {totalMessages}
+                    </span>
+                  </div>
+                  <div className="w-full bg-[#f0ede6] h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-[#016a71] h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min((totalMessages / 50) * 100, 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-[#fdfbfa] border border-[#d1d1cd] rounded-[16px] p-5 card-subtle-shadow space-y-2.5">
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-[#d1d1cd] bg-[#faf8f5] text-[#27251e] hover:bg-[#f0ede6] transition-colors text-[13px]"
+              >
+                <span className="flex items-center gap-2">
+                  <MessageSquare size={15} className="text-[#016a71]" />
+                  <span>Start New Research Thread</span>
+                </span>
+                <span>→</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-[#93000a]/20 bg-[#93000a]/5 text-[#93000a] hover:bg-[#93000a]/10 transition-colors text-[13px]"
+              >
+                <span className="flex items-center gap-2">
+                  <LogOut size={15} />
+                  <span>Sign out</span>
+                </span>
+                <span>→</span>
+              </button>
             </div>
           </div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-16 flex items-center justify-between pt-6 border-t border-[var(--border)]"
-          >
-            <div className="flex items-center gap-2">
-              <OrchardLogo size={16} className="text-[var(--text-tertiary)]" />
-              <span className="font-mono text-[10px] tracking-wider text-[var(--text-tertiary)]">
-                Orchard AI
-              </span>
-            </div>
-            <span className="font-mono text-[10px] tracking-wider text-[var(--text-tertiary)]">
-              v0.1.0
-            </span>
-          </motion.div>
         </div>
-      </div>
-    </>
+      </main>
+    </div>
   );
 };
 

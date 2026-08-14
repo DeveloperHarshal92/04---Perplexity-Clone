@@ -1,46 +1,55 @@
 import React from "react";
+import toast from "react-hot-toast";
 
-const ChatHeader = ({ isLoading, isDark, onToggleTheme, onMenuToggle, sidebarOpen }) => {
+const ChatHeader = ({ title, isLoading }) => {
+  const handleShare = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard");
+    }
+  };
+
+  const formattedTitle = title
+    ? title.replace(/\*\*/g, "").replace(/__/g, "").replace(/^#+\s*/, "").replace(/^Title:\s*/i, "").trim()
+    : null;
+
   return (
-    <header className="flex justify-between items-center px-md w-full sticky top-0 z-50 h-[52px] bg-surface/80 backdrop-blur-xl border-b border-white/5">
-      <div className="flex items-center gap-sm">
-        <button 
-          className="flex items-center justify-center p-1 rounded-lg hover:bg-white/5 transition-colors" 
-          onClick={onMenuToggle}
-          title="Toggle Sidebar"
-        >
-          <img alt="Orchard AI Logo" className="w-7 h-7 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLttygO57vcpMbS9IhQtnYFUvW0rthLyZ1JFio4pieRXM4j6x7I7RycZVyPX3lP94t347N6RqmNdMybWfYy4EfUBiMB6qguKHJf9nkIcAIMuTTUZraYC1uM7VNL_AgoTeUd4ADRwBm72B55QlOiy2G_ISHI4CMBwK0eT_vU6LM_9qVl4RoO8yVJ0U4OdqtdoXRMG9bQNcHuv8qV8dcqNQ3jIHNqb4cScQv-H_9kgWEiS2_z1G9DPgPc2KQ"/>
-        </button>
-        <div className={`font-h2 text-h2 font-semibold text-primary ${sidebarOpen ? 'md:hidden' : ''}`}>Orchard AI</div>
+    <header className="flex justify-between items-center px-4 w-full sticky top-0 z-30 h-[52px] bg-[#faf8f5]/90 backdrop-blur-md border-b border-[#d1d1cd]/60">
+      <div className="flex items-center gap-2">
+        {formattedTitle ? (
+          <span className="text-[13px] text-[#72706b] font-normal truncate max-w-[320px]">
+            {formattedTitle}
+          </span>
+        ) : (
+          <div className="w-4" />
+        )}
       </div>
-      <div className="flex items-center gap-sm">
-        {/* Thinking Dots Animation */}
-        {isLoading && (
-          <div className="flex items-center gap-[4px] px-sm py-1 bg-white/5 rounded-full mr-md">
-            <span className="font-label-mono text-[10px] text-outline tracking-wider">THINKING</span>
-            <div className="flex gap-[3px]">
-              <div className="w-[3px] h-[3px] rounded-full bg-primary animate-pulse"></div>
-              <div className="w-[3px] h-[3px] rounded-full bg-primary animate-pulse [animation-delay:200ms]"></div>
-              <div className="w-[3px] h-[3px] rounded-full bg-primary animate-pulse [animation-delay:400ms]"></div>
+
+      {/* Right controls */}
+      <div className="flex items-center gap-2">
+        {isLoading ? (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#f0ede6] border border-[#d1d1cd] rounded-full">
+            <span className="text-[11px] text-[#016a71] font-mono font-medium">SEARCHING</span>
+            <div className="flex gap-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#016a71] dot-bounce" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#016a71] dot-bounce" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#016a71] dot-bounce" />
             </div>
           </div>
-        )}
-        {!isLoading && (
-          <div className="flex items-center gap-[4px] px-sm py-1 bg-white/5 rounded-full mr-md">
-            <span className="font-label-mono text-[10px] text-outline tracking-wider">AI READY</span>
+        ) : (
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#f0ede6] text-[#72706b] text-[11px] font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#016a71]" />
+            <span>Ready</span>
           </div>
         )}
-        
+
         <button 
-          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-on-surface-variant"
-          onClick={onToggleTheme}
+          onClick={handleShare}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[#d1d1cd] hover:bg-[#eae7e1] text-[#72706b] hover:text-[#27251e] transition-colors text-[12px]"
+          title="Share thread"
         >
-          <span className="material-symbols-outlined text-[20px]">
-            {isDark ? "light_mode" : "dark_mode"}
-          </span>
-        </button>
-        <button className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors text-on-surface-variant">
-          <span className="material-symbols-outlined text-[20px]">share</span>
+          <span className="material-symbols-outlined text-[16px]">share</span>
+          <span className="hidden sm:inline">Share</span>
         </button>
       </div>
     </header>

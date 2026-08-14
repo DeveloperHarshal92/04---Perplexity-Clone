@@ -1,5 +1,27 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
+import { useAuth } from "../hook/useAuth";
+import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
+
+const PerplexityIcon = ({ size = 22, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M12 2V22M12 12L20 4M12 12L4 4M12 12L20 20M12 12L4 20M2 12H22"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -10,6 +32,8 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [strength, setStrength] = useState(0);
   const navigate = useNavigate();
+  const { handleRegister } = useAuth();
+  const loading = useSelector((state) => state.auth.loading);
 
   const reqs = {
     length: formData.password.length >= 8,
@@ -32,146 +56,212 @@ export default function Register() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    console.log(formData);
-    // You can handle registration logic here
-    // navigate("/");
+    if (!formData.username || !formData.email || !formData.password) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+    if (formData.password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+
+    try {
+      await handleRegister({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+      toast.success(
+        "Account created! Please check your email to verify before signing in.",
+        { duration: 5000 },
+      );
+      navigate("/login");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || "Registration failed. Please try again.",
+      );
+    }
   }
 
   return (
-    <div className="dark flex items-center justify-center min-h-screen p-md bg-surface-dim overflow-hidden font-body-md text-on-surface">
-      {/* Background Decoration */}
-      <div className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none">
-        <div className="absolute top-[10%] left-[15%] w-96 h-96 bg-primary/5 blur-[120px] rounded-full"></div>
-        <div className="absolute bottom-[20%] right-[10%] w-80 h-80 bg-accent/5 blur-[100px] rounded-full"></div>
-      </div>
+    <div className="min-h-screen flex items-center justify-center relative p-4 bg-[#faf8f5] text-[#27251e] font-sans selection:bg-[#016a71]/15">
+      {/* Background Ambience */}
+      <div
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full opacity-30 blur-[130px] pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(1, 106, 113, 0.08) 0%, transparent 70%)",
+        }}
+      />
 
       {/* Main Container */}
-      <main className="w-full max-w-[480px] z-10">
-        <div className="glass-card rounded-2xl p-lg md:p-xl transition-all duration-500 ease-in-out">
-          {/* Header Section */}
-          <header className="flex flex-col gap-sm mb-lg">
-            <div className="flex items-center gap-xs">
-              <img alt="Orchard AI" className="w-8 h-8 rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLttygO57vcpMbS9IhQtnYFUvW0rthLyZ1JFio4pieRXM4j6x7I7RycZVyPX3lP94t347N6RqmNdMybWfYy4EfUBiMB6qguKHJf9nkIcAIMuTTUZraYC1uM7VNL_AgoTeUd4ADRwBm72B55QlOiy2G_ISHI4CMBwK0eT_vU6LM_9qVl4RoO8yVJ0U4OdqtdoXRMG9bQNcHuv8qV8dcqNQ3jIHNqb4cScQv-H_9kgWEiS2_z1G9DPgPc2KQ"/>
-              <span className="font-lora text-headline-sm font-semibold tracking-tight text-primary uppercase">ORCHARD AI</span>
+      <main className="relative z-10 w-full max-w-[440px]">
+        <div className="bg-[#fdfbfa] border border-[#d1d1cd] rounded-[16px] p-6 sm:p-8 card-subtle-shadow">
+          {/* Logo Section */}
+          <div className="flex items-center gap-2.5 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-[#27251e] text-[#faf8f5] flex items-center justify-center">
+              <PerplexityIcon size={18} />
             </div>
-            <div className="mt-xs">
-              <h1 className="font-headline-md text-headline-md text-on-surface">Start your sanctuary.</h1>
-              <p className="font-body-md text-body-md text-on-surface-variant/80">Cultivating intelligence with intentional design.</p>
-            </div>
+            <span className="text-[20px] font-medium tracking-tight text-[#27251e]">
+              perplexity
+            </span>
+          </div>
+
+          {/* Header */}
+          <header className="mb-6">
+            <h1 className="text-[22px] font-medium text-[#27251e] tracking-tight mb-1">
+              Create your account
+            </h1>
+            <p className="text-[14px] text-[#72706b]">
+              Start researching and querying with verified knowledge
+            </p>
           </header>
 
-          {/* Registration Form */}
-          <form className="flex flex-col gap-md" id="registrationForm" onSubmit={handleSubmit}>
+          {/* Form */}
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {/* Username */}
-            <div className="flex flex-col gap-xs">
-              <label className="font-body-md text-label-caps text-on-surface-variant uppercase tracking-widest px-unit" htmlFor="username">Username</label>
-              <input 
-                className="bg-surface-variant/50 border border-outline-variant/30 rounded-lg px-md py-sm font-code-sm text-on-surface input-glow transition-all placeholder:text-on-surface-variant/40" 
-                id="username" 
+            <div className="space-y-1.5">
+              <label
+                className="text-[13px] font-medium text-[#27251e]"
+                htmlFor="username"
+              >
+                Username
+              </label>
+              <input
+                className="w-full bg-[#faf8f5] border border-[#d1d1cd] rounded-[12px] px-3.5 py-2.5 text-[#27251e] placeholder:text-[#92918b] text-[14px] input-focus-teal transition-all"
+                id="username"
                 name="username"
-                placeholder="Choose a handle" 
+                placeholder="Choose a username"
                 type="text"
+                required
                 value={formData.username}
                 onChange={handleChange}
               />
             </div>
 
             {/* Email */}
-            <div className="flex flex-col gap-xs">
-              <label className="font-body-md text-label-caps text-on-surface-variant uppercase tracking-widest px-unit" htmlFor="email">Email</label>
-              <input 
-                className="bg-surface-variant/50 border border-outline-variant/30 rounded-lg px-md py-sm font-code-sm text-on-surface input-glow transition-all placeholder:text-on-surface-variant/40" 
-                id="email" 
+            <div className="space-y-1.5">
+              <label
+                className="text-[13px] font-medium text-[#27251e]"
+                htmlFor="email"
+              >
+                Email Address
+              </label>
+              <input
+                className="w-full bg-[#faf8f5] border border-[#d1d1cd] rounded-[12px] px-3.5 py-2.5 text-[#27251e] placeholder:text-[#92918b] text-[14px] input-focus-teal transition-all"
+                id="email"
                 name="email"
-                placeholder="sanctuary@orchard.ai" 
+                placeholder="name@example.com"
                 type="email"
+                required
                 value={formData.email}
                 onChange={handleChange}
               />
             </div>
 
             {/* Password */}
-            <div className="flex flex-col gap-xs">
-              <div className="flex justify-between items-center">
-                <label className="font-body-md text-label-caps text-on-surface-variant uppercase tracking-widest px-unit" htmlFor="password">Password</label>
-              </div>
+            <div className="space-y-1.5">
+              <label
+                className="text-[13px] font-medium text-[#27251e]"
+                htmlFor="password"
+              >
+                Password
+              </label>
               <div className="relative">
-                <input 
-                  className="w-full bg-surface-variant/50 border border-outline-variant/30 rounded-lg px-md py-sm font-code-sm text-on-surface input-glow transition-all placeholder:text-on-surface-variant/40" 
-                  id="password" 
+                <input
+                  className="w-full bg-[#faf8f5] border border-[#d1d1cd] rounded-[12px] px-3.5 py-2.5 text-[#27251e] placeholder:text-[#92918b] text-[14px] input-focus-teal transition-all pr-10"
+                  id="password"
                   name="password"
-                  placeholder="••••••••" 
+                  placeholder="••••••••"
                   type={showPassword ? "text" : "password"}
+                  required
                   value={formData.password}
                   onChange={handleChange}
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/60 hover:text-on-surface" onClick={() => setShowPassword(!showPassword)} type="button">
-                  <span className="material-symbols-outlined text-[20px]" id="visibilityIcon">
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#92918b] hover:text-[#27251e] p-1"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <span className="material-symbols-outlined text-[18px]">
                     {showPassword ? "visibility_off" : "visibility"}
                   </span>
                 </button>
               </div>
 
               {/* Password Strength Meter */}
-              <div className="grid grid-cols-4 gap-xs mt-xs">
-                {[1, 2, 3, 4].map((level) => {
-                  let bgColor = 'rgba(255, 255, 255, 0.1)';
-                  if (level <= strength) {
-                    if (strength === 1) bgColor = '#ef4444'; // Red
-                    if (strength === 2) bgColor = '#f97316'; // Orange
-                    if (strength === 3) bgColor = '#facc15'; // Yellow
-                    if (strength >= 4) bgColor = '#D97706'; // Accent
-                  }
-                  return (
-                    <div 
-                      key={level} 
-                      className="strength-bar" 
-                      style={{ backgroundColor: bgColor }}
-                    />
-                  );
-                })}
-              </div>
+              {formData.password.length > 0 && (
+                <div className="pt-1">
+                  <div className="grid grid-cols-4 gap-1 mb-2">
+                    {[1, 2, 3, 4].map((level) => {
+                      let bgColor = "#d1d1cd";
+                      if (level <= strength) {
+                        if (strength === 1) bgColor = "#93000a";
+                        else if (strength === 2) bgColor = "#d97706";
+                        else if (strength >= 3) bgColor = "#016a71";
+                      }
+                      return (
+                        <div
+                          key={level}
+                          className="h-1 rounded-full transition-colors duration-200"
+                          style={{ backgroundColor: bgColor }}
+                        />
+                      );
+                    })}
+                  </div>
 
-              {/* Requirements Checklist */}
-              <ul className="flex flex-col gap-xs mt-sm custom-scrollbar max-h-40 overflow-y-auto pr-xs">
-                <li className={`requirement-item flex items-center gap-xs font-body-md text-on-surface-variant/70 text-[14px] ${reqs.length ? 'met' : ''}`}>
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                  At least 8 characters long
-                </li>
-                <li className={`requirement-item flex items-center gap-xs font-body-md text-on-surface-variant/70 text-[14px] ${reqs.number ? 'met' : ''}`}>
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                  Contains at least one number
-                </li>
-                <li className={`requirement-item flex items-center gap-xs font-body-md text-on-surface-variant/70 text-[14px] ${reqs.special ? 'met' : ''}`}>
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                  Includes a special symbol (!@#$)
-                </li>
-              </ul>
+                  {/* Requirements list */}
+                  <div className="text-[12px] space-y-1 text-[#72706b]">
+                    <div
+                      className={`flex items-center gap-1.5 ${reqs.length ? "text-[#016a71] font-medium" : ""}`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">
+                        {reqs.length ? "check" : "circle"}
+                      </span>
+                      <span>At least 8 characters</span>
+                    </div>
+                    <div
+                      className={`flex items-center gap-1.5 ${reqs.number ? "text-[#016a71] font-medium" : ""}`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">
+                        {reqs.number ? "check" : "circle"}
+                      </span>
+                      <span>Contains at least one number</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* CTA */}
-            <button className="mt-md w-full bg-accent text-on-primary py-md rounded-xl font-body-md font-semibold text-body-lg btn-primary-hover transition-all flex items-center justify-center gap-xs group" type="submit">
-              Create account
-              <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            {/* Submit */}
+            <button
+              disabled={loading}
+              className="w-full bg-[#27251e] hover:bg-[#000000] active:scale-[0.99] text-[#faf8f5] font-medium text-[14px] py-2.5 rounded-[12px] flex items-center justify-center gap-2 transition-all mt-3 disabled:opacity-50"
+              type="submit"
+            >
+              {loading ? "Creating account..." : "Create account"}
+              <span className="material-symbols-outlined text-[18px]">
+                arrow_forward
+              </span>
             </button>
-            
-            <p className="text-center font-body-md text-[14px] text-on-surface-variant/60 mt-sm">
-              By registering, you agree to our 
-              <a className="text-primary hover:underline underline-offset-4 mx-1" href="#">Terms</a> and 
-              <a className="text-primary hover:underline underline-offset-4 mx-1" href="#">Privacy Policy</a>.
-            </p>
           </form>
-        </div>
 
-        {/* Secondary Navigation/Links */}
-        <footer className="mt-lg text-center flex flex-col gap-sm">
-          <p className="font-body-md text-on-surface-variant">
-            Already have an account? 
-            <Link className="text-primary font-semibold hover:text-primary-fixed transition-colors ml-1" to="/login">Sign in</Link>
-          </p>
-        </footer>
+          {/* Footer */}
+          <footer className="mt-6 text-center">
+            <p className="text-[13px] text-[#72706b]">
+              Already have an account?
+              <Link
+                className="text-[#016a71] font-medium ml-1.5 hover:underline"
+                to="/login"
+              >
+                Sign in
+              </Link>
+            </p>
+          </footer>
+        </div>
       </main>
     </div>
   );

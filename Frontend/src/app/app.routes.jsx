@@ -1,10 +1,9 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router";
 import Login from "../features/auth/pages/Login";
 import Register from "../features/auth/pages/Register";
 import Dashboard from "../features/chat/pages/Dashboard";
 import Protected from "../features/auth/components/Protected";
 import Profile from "../features/chat/pages/Profile";
-
 
 export const router = createBrowserRouter([
   {
@@ -30,5 +29,41 @@ export const router = createBrowserRouter([
         <Profile />
       </Protected>
     ),
+  },
+  {
+    path: "/discover",
+    element: (
+      <Protected>
+        <Dashboard />
+      </Protected>
+    ),
+  },
+  {
+    path: "/spaces",
+    element: (
+      <Protected>
+        <Dashboard />
+      </Protected>
+    ),
+  },
+  {
+    path: "/library",
+    element: (
+      <Protected>
+        <Dashboard />
+      </Protected>
+    ),
+  },
+  {
+    path: "/explore",
+    element: (
+      <Protected>
+        <Dashboard />
+      </Protected>
+    ),
+  },
+  {
+    path: "*",
+    element: <Navigate to="/" replace />,
   },
 ]);

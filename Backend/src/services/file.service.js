@@ -8,7 +8,6 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 });
 
-
 export const processFile = async (file) => {
   const { buffer, mimetype, originalname } = file;
 
@@ -32,8 +31,7 @@ export const processFile = async (file) => {
       fileId: uploaded.fileId,
       name: originalname,
       type: mimetype,
-      // AI prompt injection
-      aiContext: `The user shared an image. URL: ${uploaded.url} — analyze it if relevant.`,
+      aiContext: `The user shared an image. URL: ${uploaded.url} - analyze it if relevant.`,
     };
   }
 
@@ -55,6 +53,7 @@ export const processFile = async (file) => {
       strategy: "parsed",
       name: originalname,
       type: mimetype,
+      rawText: extractedText,
       aiContext: `The user uploaded a PDF named "${originalname}". Content:\n\n${extractedText}`,
     };
   }
@@ -76,6 +75,7 @@ export const processFile = async (file) => {
       strategy: "parsed",
       name: originalname,
       type: mimetype,
+      rawText: extractedText,
       aiContext: `The user uploaded a Word document named "${originalname}". Content:\n\n${extractedText}`,
     };
   }
@@ -88,6 +88,7 @@ export const processFile = async (file) => {
       strategy: "parsed",
       name: originalname,
       type: mimetype,
+      rawText: extractedText,
       aiContext: `The user uploaded a text file named "${originalname}". Content:\n\n${extractedText}`,
     };
   }
@@ -97,6 +98,7 @@ export const processFile = async (file) => {
     strategy: "unsupported",
     name: originalname,
     type: mimetype,
+    rawText: "",
     aiContext: `The user uploaded a file named "${originalname}" but it could not be processed.`,
   };
 };

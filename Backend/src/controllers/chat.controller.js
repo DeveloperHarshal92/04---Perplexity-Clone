@@ -2,6 +2,7 @@ import { generateChatTitle, generateResponse } from "../services/ai.service.js";
 import chatModel from "../models/chat.model.js";
 import messageModel from "../models/message.model.js";
 import { processFile } from "../services/file.service.js";
+import { indexDocument } from "../services/rag.service.js";
 
 export async function sendMessage(req, res) {
   try {
@@ -40,6 +41,16 @@ export async function sendMessage(req, res) {
 
     const currentChatId = chatId || chat._id;
 
+    // ── RAG: Index parsed document chunks into Pinecone in background ─────────
+    if (processedFile?.strategy === "parsed" && processedFile?.rawText) {
+      indexDocument({
+        text: processedFile.rawText,
+        chatId: currentChatId,
+        userId: req.user.id,
+        documentName: processedFile.name,
+      }).catch((err) => console.error("RAG indexing error:", err));
+    }
+
     // ── Save user message to DB ───────────────────────────────────────────────
     await messageModel.create({
       chat: currentChatId,
@@ -66,11 +77,8 @@ export async function sendMessage(req, res) {
       };
     });
 
-    // ── Call AI — pass processedFile so generateResponse can handle vision ────
-    // For text-only: processedFile is null → agent handles it as before
-    // For images:    processedFile.strategy === "imagekit" → Gemini vision
-    // For documents: processedFile.strategy === "parsed"   → agent with text
-    const result = await generateResponse(messagesForAI, processedFile);
+    // ── Call AI — pass processedFile and currentChatId for RAG ────────────────
+    const result = await generateResponse(messagesForAI, processedFile, currentChatId);
 
     // ── Save AI response to DB ────────────────────────────────────────────────
     const aiMessage = await messageModel.create({

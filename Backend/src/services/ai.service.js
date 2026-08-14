@@ -9,6 +9,7 @@ import {
 } from "langchain";
 import * as z from "zod";
 import { searchInternet } from "./internet.service.js";
+import { queryRag } from "./rag.service.js";
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -32,30 +33,62 @@ const searchInternetTool = tool(searchInternet, {
   }),
 });
 
+const searchKnowledgeBaseTool = tool(
+  async ({ query }) => {
+    try {
+      const matches = await queryRag({ query, topK: 4 });
+      if (!matches || matches.length === 0) {
+        return "No relevant document chunks found in the knowledge base.";
+      }
+      return matches
+        .map((m, i) => `[Source ${i + 1}: ${m.documentName}] (Relevance Score: ${m.score?.toFixed(2) || "N/A"})\n${m.text}`)
+        .join("\n\n---\n\n");
+    } catch (err) {
+      console.error("Error in searchKnowledgeBaseTool:", err);
+      return "Could not retrieve documents from knowledge base at this time.";
+    }
+  },
+  {
+    name: "searchKnowledgeBase",
+    description: "Search uploaded user documents and PDF/Word/TXT files in the Pinecone vector knowledge base for relevant context.",
+    schema: z.object({
+      query: z.string().describe("The search query or keyword phrase to find relevant context in uploaded documents."),
+    }),
+  }
+);
+
 const agent = createAgent({
   model: mistralModel,
-  tools: [searchInternetTool],
+  tools: [searchInternetTool, searchKnowledgeBaseTool],
 });
 
 // ── generateResponse ──────────────────────────────────────────────────────────
-//
-// processedFile is the object returned by file.service.js — shape:
-//   { strategy: "imagekit", url, name, type, aiContext }  ← image
-//   { strategy: "parsed",   name, type, aiContext }       ← document
-//   null                                                   ← text-only
-//
-export async function generateResponse(messages, processedFile = null) {
+
+export async function generateResponse(messages, processedFile = null, chatId = null) {
   try {
+    const lastMessage = messages[messages.length - 1];
+    const lastMessageText = typeof lastMessage?.content === "string" ? lastMessage.content : "";
+
+    // Query RAG for matching semantic chunks from Pinecone
+    let ragContext = "";
+    if (lastMessageText.trim()) {
+      try {
+        const ragMatches = await queryRag({ query: lastMessageText, chatId, topK: 3 });
+        if (ragMatches && ragMatches.length > 0) {
+          ragContext = "\n\nRetrieved Knowledge Base Context (RAG):\n" +
+            ragMatches.map((m, i) => `[Context ${i + 1} from ${m.documentName}]:\n${m.text}`).join("\n\n");
+        }
+      } catch (err) {
+        console.error("RAG context query skipped:", err.message);
+      }
+    }
+
     // ── CASE 1: Image attached → use Gemini (vision capable) ──────────────────
     if (processedFile?.strategy === "imagekit") {
-      // LangChain's Google GenAI integration accepts standard image content
-      // blocks, which are converted into Gemini inlineData parts.
-      const lastMessage = messages[messages.length - 1];
-
       const humanMessageContent = [
         {
           type: "text",
-          text: lastMessage.content || "Please describe and analyze this image.",
+          text: lastMessageText || "Please describe and analyze this image.",
         },
         {
           type: "image",
@@ -74,8 +107,6 @@ export async function generateResponse(messages, processedFile = null) {
         })
         .filter(Boolean);
 
-      console.log("IMAGE SIZE:", processedFile.base64.length);
-
       const response = await geminiModel.invoke([
         new SystemMessage(
           `You are a helpful and precise assistant.
@@ -89,18 +120,18 @@ export async function generateResponse(messages, processedFile = null) {
       return response.text;
     }
 
-    // ── CASE 2: Document attached (PDF, DOCX, TXT) → use agent with text ──────
-    // The document text is already injected into the last message's content
-    // by chat.controller.js via aiPrompt, so the agent handles it as plain text.
+    // ── CASE 2: Document attached (PDF, DOCX, TXT) → use agent with document text & RAG ──
     if (processedFile?.strategy === "parsed") {
+      const systemPrompt = `You are a helpful, authoritative and precise research assistant.
+The user shared a document: "${processedFile.name}". Its content has been processed into the knowledge base.
+${ragContext ? ragContext : ""}
+Carefully answer the user's questions based on the document.
+If the question also requires external or real-time information, use the searchInternet tool.
+If you need additional context from indexed documents, use the searchKnowledgeBase tool.`;
+
       const response = await agent.invoke({
         messages: [
-          new SystemMessage(
-            `You are a helpful and precise assistant. 
-            The user has shared a document — its content has been extracted and appended to their message. 
-            Read the document content carefully and answer based on it.
-            If the question also requires up-to-date information, use the searchInternet tool.`
-          ),
+          new SystemMessage(systemPrompt),
           ...messages.map((msg) => {
             if (msg.role === "user") return new HumanMessage(msg.content);
             if (msg.role === "ai") return new AIMessage(msg.content);
@@ -110,14 +141,16 @@ export async function generateResponse(messages, processedFile = null) {
       return response.messages[response.messages.length - 1].text;
     }
 
-    // ── CASE 3: Text only → original agent behavior, completely unchanged ──────
+    // ── CASE 3: Text only → agent with Internet & RAG Knowledge Base ───────────
+    const systemPrompt = `You are a helpful and precise assistant for answering questions.
+${ragContext ? ragContext : ""}
+If the question relates to user uploaded files or previous documents, use the "searchKnowledgeBase" tool.
+If the question requires up-to-date real-time information, use the "searchInternet" tool to get the latest info from the web.
+Synthesize your answer clearly with structured markdown.`;
+
     const response = await agent.invoke({
       messages: [
-        new SystemMessage(
-          `You are a helpful and precise assistant for answering questions.
-          If you don't know the answer, say you don't know. 
-          If the question requires up-to-date information, use the "searchInternet" tool to get the latest information from the internet and then answer based on the search results.`
-        ),
+        new SystemMessage(systemPrompt),
         ...messages.map((msg) => {
           if (msg.role === "user") return new HumanMessage(msg.content);
           if (msg.role === "ai") return new AIMessage(msg.content);
@@ -126,27 +159,12 @@ export async function generateResponse(messages, processedFile = null) {
     });
     return response.messages[response.messages.length - 1].text;
   } catch (error) {
-    console.error(
-      "FULL ERROR:",
-      JSON.stringify(
-        {
-          name: error?.name,
-          message: error?.message,
-          code: error?.code,
-          status: error?.status,
-          details: error?.details,
-          cause: error?.cause,
-        },
-        null,
-        2
-      )
-    );
-    console.error(error?.stack);
-    return "I apologize, but I'm having trouble processing your request right now. Please try again later.";
+    console.error("Error in generateResponse:", error);
+    return "I apologize, but I am having trouble processing your request right now. Please try again.";
   }
 }
 
-// ── generateChatTitle — completely unchanged ──────────────────────────────────
+// ── generateChatTitle ────────────────────────────────────────────────────────
 export async function generateChatTitle(message) {
   try {
     const response = await mistralModel.invoke([
@@ -162,6 +180,6 @@ export async function generateChatTitle(message) {
     return response.text;
   } catch (error) {
     console.error("Error generating chat title:", error);
-    return "New Chat"; // Fallback title
+    return "New Chat";
   }
 }
