@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import MessageBubble from "./MessageBubble";
+import MessageBubble from "./Messagebubble.jsx";
 
 const PerplexityIcon = ({ size = 32, className = "" }) => (
   <svg

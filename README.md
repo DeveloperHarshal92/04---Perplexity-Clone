@@ -1,149 +1,139 @@
-# Perplexity AI Clone
+# Perplexity AI Full-Stack Answer Engine 🧠⚡
 
-A full-stack AI research and answer engine featuring real-time web search, Pinecone vector RAG, multimodal document/image analysis, and a clean "scholar's parchment" user interface.
+A modern AI-powered conversational search and research engine combining LangChain agent orchestration, live Tavily web retrieval, Pinecone vector RAG, multimodal document/vision analysis, and real-time streaming over WebSockets.
 
-## Features
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=flat&logo=github)](https://github.com/DeveloperHarshal92/04---Perplexity-Clone.git)
+[![React](https://img.shields.io/badge/React-19.1-61DAFB?style=flat&logo=react)](https://react.dev/)
+[![LangChain](https://img.shields.io/badge/LangChain-Orchestration-1C3C3C?style=flat)](https://js.langchain.com/)
+[![Pinecone](https://img.shields.io/badge/Pinecone-Vector_DB-000000?style=flat)](https://www.pinecone.io/)
+[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?style=flat&logo=tailwindcss)](https://tailwindcss.com/)
+[![Express](https://img.shields.io/badge/Express-5.2-000000?style=flat&logo=express)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?style=flat&logo=mongodb)](https://mongoosejs.com/)
+[![Socket.io](https://img.shields.io/badge/Socket.io-Streaming-010101?style=flat&logo=socket.io)](https://socket.io/)
 
-- **AI Search & Reasoning**: Intelligent question answering powered by Mistral AI (`mistral-medium`) with LangChain agent orchestration.
-- **Retrieval-Augmented Generation (RAG)**: Semantic vector search powered by Pinecone DB (`@pinecone-database/pinecone`), Mistral embeddings (`mistral-embed`), and `RecursiveCharacterTextSplitter`.
-- **Live Internet Search**: Real-time web retrieval tool integration via Tavily Search API for up-to-date answers and citations.
-- **Multimodal File & Image Analysis**: 
-  - Vision analysis for images (PNG, JPEG, WebP) powered by Google Gemini (`gemini-2.5-flash`).
-  - Document parsing and contextual querying for PDF (`pdf-parse`), DOCX (`mammoth`), and TXT files.
-  - Image hosting and media upload pipeline backed by ImageKit.
-- **Real-Time Communication**: WebSocket connection powered by Socket.IO for live bidirectional communication.
-- **Automated Thread Titling**: Automatic semantic 2–4 word title generation for conversations using AI summarization.
-- **Authentication & Security**: Email/password authentication with bcrypt, JWT stored in HTTP-only cookies, and Nodemailer email verification.
-- **Perplexity UI & Design System**: 
-  - "Scholar's parchment" aesthetic with exact design tokens (`#faf8f5` canvas, `#fdfbfa` cards, `#016a71` deep teal accents, `#27251e` ink typography).
-  - Model switcher with support for multiple AI model presets.
-  - Typewriter text streaming with structured markdown formatting (code syntax highlighting, tables, blockquotes).
-  - Speech-to-text voice input via Web Speech API and file attachment previews.
-  - Full thread management (history, deletion, auto-scrolling, shareable links).
+---
 
-## Tech Stack
+## 🌟 Key Features
+
+- **Multi-Engine AI Synthesis**: Queries orchestrated through LangChain leveraging Mistral AI, OpenAI, and Google Gemini for deep reasoning and synthesis.
+- **Hybrid Vector RAG**: Semantic vector retrieval using Pinecone DB, Recursive Character Text Chunking, and high-dimensional embeddings.
+- **Live Internet Grounding**: Real-time web retrieval using Tavily Search API for up-to-the-minute web citations and source transparency.
+- **Multimodal Document & Vision Parsing**:
+  - Image comprehension via Google Gemini (`gemini-2.5-flash`).
+  - Document ingestion for PDF (`pdf-parse`) and DOCX (`mammoth`) files.
+  - Image hosting and CDN asset management via ImageKit.
+- **Real-Time Token Streaming**: Low-latency bidirectional socket streaming with typewriter markdown rendering, code highlighting, and auto-generated thread titling.
+- **Perplexity "Scholar's Parchment" UI**:
+  - Calibrated warm parchment aesthetic (`#faf8f5` canvas, `#016a71` deep teal accents, `#27251e` ink typography).
+  - Voice query integration via Web Speech API and dynamic model selector.
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
-- **Framework & Core**: React `19.1.1`, Vite `7.1.7`, React Router `7.13.1`
-- **State Management**: Redux Toolkit `@reduxjs/toolkit` `2.11.2`, `react-redux` `9.2.0`
-- **Styling**: Tailwind CSS `4.2.1` with `@tailwindcss/vite` `4.2.1`
-- **Animation & Transitions**: Framer Motion `12.38.0`
-- **Markdown & Code**: `react-markdown` `10.1.0`, `remark-gfm` `4.0.1`
-- **Networking & Realtime**: `axios` `1.13.6`, `socket.io-client` `4.8.3`, `react-hot-toast` `2.6.0`
+- **Framework**: React 19, Vite 7, React Router 7
+- **State Management**: Redux Toolkit, React-Redux
+- **Styling**: Tailwind CSS v4 (`@tailwindcss/vite`), Framer Motion
+- **Markdown & UI**: React-Markdown, Remark-GFM, Lucide React, React Hot Toast
+- **Networking & Real-Time**: Socket.io-client, Axios
 
 ### Backend
-- **Runtime & Server**: Node.js (ES Modules), Express `5.2.1`
-- **Database & Vector DB**: MongoDB with Mongoose `9.3.0`, Pinecone `@pinecone-database/pinecone` `6.1.4`
-- **AI & Agent Orchestration**: `langchain` `1.2.32`, `@langchain/google-genai` `2.1.25`, `@langchain/mistralai` `1.0.7`, `@langchain/openai` `1.2.13`, `@langchain/textsplitters` `1.0.1`, `@tavily/core` `0.7.2`, `zod` `4.3.6`
-- **File Processing & Media**: `multer` `2.1.1`, `imagekit` `6.0.0`, `pdf-parse` `2.4.5`, `mammoth` `1.12.0`
-- **Authentication & Email**: `jsonwebtoken` `9.0.3`, `bcryptjs` `3.0.3`, `nodemailer` `8.0.2`, `cookie-parser` `1.4.7`
-- **Validation & Realtime**: `express-validator` `7.3.1`, `morgan` `1.10.1`, `socket.io` `4.8.3`
+- **Server Runtime**: Node.js, Express v5
+- **AI & Agent Orchestration**: LangChain, `@langchain/google-genai`, `@langchain/mistralai`, `@langchain/openai`, `@langchain/textsplitters`, `@tavily/core`, Zod
+- **Vector Database**: Pinecone Database (`@pinecone-database/pinecone`)
+- **Document & Media Processors**: PDF-Parse, Mammoth (DOCX), Multer, ImageKit
+- **Database & Auth**: MongoDB, Mongoose v9, JWT, Bcryptjs, Nodemailer, Cookie-Parser
 
-## Project Structure
+---
+
+## 📁 Repository Architecture
 
 ```
-.
+04 - Perplexity/
 ├── Backend/
-│   ├── server.js                  # HTTP server, socket initialization, DB connection
-│   ├── package.json               # Backend dependencies and scripts
-│   └── src/
-│       ├── app.js                 # Express app config, middleware, routes
-│       ├── config/                # Database and service configs
-│       ├── controllers/           # Auth and chat request handlers
-│       ├── middlewares/           # JWT auth and file upload middlewares
-│       ├── models/                # Mongoose schemas (User, Chat, Message)
-│       ├── routes/                # API endpoints (/api/auth, /api/chats)
-│       ├── services/              # AI (Gemini/Mistral), RAG (Pinecone), Tavily search, file parsing
-│       ├── sockets/               # Socket.IO connection handlers
-│       └── validators/            # Express-validator schemas
+│   ├── src/
+│   │   ├── config/          # DB & third-party service configs
+│   │   ├── controllers/     # Auth & Chat controllers
+│   │   ├── middlewares/     # JWT authentication & Multer uploads
+│   │   ├── models/          # User, Chat, Message Mongoose models
+│   │   ├── routes/          # Express API routes
+│   │   ├── services/        # AI (Gemini/Mistral), RAG (Pinecone), Tavily search, Mail
+│   │   ├── sockets/         # Socket.io live streaming handlers
+│   │   └── validators/      # Express-validator schemas
+│   ├── server.js            # Server entry point
+│   └── package.json
 └── Frontend/
-    ├── index.html                 # HTML entry point and font configurations
-    ├── vite.config.js             # Vite build configuration with Tailwind plugin
-    ├── package.json               # Frontend dependencies and scripts
-    └── src/
-        ├── main.jsx               # React DOM root render
-        ├── app/                   # App routes, Redux store, and global CSS tokens
-        └── features/
-            ├── auth/              # Auth slice, API services, Login, Register, Protected route
-            └── chat/              # Chat slice, hooks, Dashboard, Profile, Feed, Input, Sidebar
+    ├── src/
+    │   ├── app/             # Redux store & router setup
+    │   ├── features/
+    │   │   ├── auth/        # Auth slice, login, register, protected wrapper
+    │   │   └── chat/        # Chat slice, socket service, typewriter hook, feed, sidebar
+    │   ├── main.jsx
+    │   └── app/index.css
+    └── package.json
 ```
 
-## Setup & Installation
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18+ recommended)
-- MongoDB instance (local or MongoDB Atlas)
-- Pinecone Vector DB account & index
+- Node.js (v18+)
+- MongoDB connection URI
+- Pinecone API Key & Index
+- API Keys: Gemini, Mistral, Tavily, ImageKit
 
-### 1. Clone & Install Dependencies
-
+### 1. Configure & Run Backend
 ```bash
-# Install backend dependencies
 cd Backend
 npm install
-
-# Install frontend dependencies
-cd ../Frontend
-npm install
 ```
-
-## Environment Variables / Config
-
-Create a `.env` file in the `Backend/` directory:
-
+Create `.env` in `Backend/`:
 ```env
 PORT=3000
-MONGODB_URI=mongodb://localhost:27017/perplexity
-JWT_SECRET=your_jwt_secret_key
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 
-# AI & Search API Keys
 GEMINI_API_KEY=your_gemini_api_key
 MISTRAL_API_KEY=your_mistral_api_key
 TAVILY_API_KEY=your_tavily_api_key
 
-# Pinecone Vector DB (RAG)
 PINECONE_API_KEY=your_pinecone_api_key
-PINECONE_INDEX=cohort-2-rag
+PINECONE_INDEX=your_pinecone_index
 
-# ImageKit (Media Uploads)
 IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
 IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
 IMAGEKIT_URL_ENDPOINT=your_imagekit_url_endpoint
 
-# Email Verification (Nodemailer)
 MAIL_USER=your_email@example.com
-MAIL_PASS=your_email_app_password
+MAIL_PASS=your_email_password
 ```
-
-## Usage
-
-### Run Locally
-
-1. **Start Backend Server** (Port 3000):
-   ```bash
-   cd Backend
-   npm run dev
-   ```
-
-2. **Start Frontend Server** (Port 5173):
-   ```bash
-   cd Frontend
-   npm run dev
-   ```
-
-3. Open `http://localhost:5173` in your browser.
-
-### Production Build
-
+Start backend:
 ```bash
-cd Frontend
-npm run build
+npm run dev
 ```
 
-## Testing
+### 2. Configure & Run Frontend
+```bash
+cd ../Frontend
+npm install
+npm run dev
+```
 
-> Currently, automated test suites are not configured in `Backend/package.json` (`echo "Error: no test specified"`). Test verification is performed via `npm run build` on the frontend and manual API/browser testing.
+---
 
-## License
+## 📡 API & Socket Overview
 
-ISC
+| Channel / Route | Type | Description |
+| :--- | :--- | :--- |
+| `/api/auth/login` | HTTP POST | Authenticate user session |
+| `/api/chats` | HTTP GET/POST | Fetch user conversations / Create thread |
+| `join_room` | Socket Event | Join real-time streaming thread |
+| `send_message` | Socket Event | Dispatch prompt for live RAG + LLM streaming |
+| `receive_chunk` | Socket Event | Receive streamed tokens with markdown chunks |
+
+---
+
+## 📄 License
+ISC License. Built for portfolio showcase.
