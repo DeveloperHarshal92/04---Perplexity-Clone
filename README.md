@@ -1,4 +1,4 @@
-# Perplexity AI Full-Stack Answer Engine 🧠⚡
+# Perplexus AI Full-Stack Answer Engine 🧠⚡
 
 A modern AI-powered conversational search and research engine combining LangChain agent orchestration, live Tavily web retrieval, Pinecone vector RAG, multimodal document/vision analysis, and real-time streaming over WebSockets.
 
@@ -23,8 +23,8 @@ A modern AI-powered conversational search and research engine combining LangChai
   - Document ingestion for PDF (`pdf-parse`) and DOCX (`mammoth`) files.
   - Image hosting and CDN asset management via ImageKit.
 - **Real-Time Token Streaming**: Low-latency bidirectional socket streaming with typewriter markdown rendering, code highlighting, and auto-generated thread titling.
-- **Perplexity "Scholar's Parchment" UI**:
-  - Calibrated warm parchment aesthetic (`#faf8f5` canvas, `#016a71` deep teal accents, `#27251e` ink typography).
+- **Perplexus "Scholar's Parchment" UI**:
+  - Calibrated warm parchment aesthetic (`#faf8f5` canvas, `#016a71` deep teal accents, `#27251e` ink typography, and custom editorial serif logo mark).
   - Voice query integration via Web Speech API and dynamic model selector.
 
 ---

@@ -1,9 +1,9 @@
-# Perplexity AI — Style Reference
+# Perplexus AI — Style Reference
 > scholar's parchment behind clean glass
 
 **Theme:** light
 
-Perplexity's interface reads as a warm-paper research desk: an off-white parchment canvas (#faf8f5) with quiet ink-dark text, hairline warm-gray dividers, and a single restrained teal that signals navigation and active states. Components stay compact and low-elevation — soft 16px-radius cards, ghost buttons, pill chips — letting the central search input dominate as the focal artifact. Type uses a custom geometric sans (pplxSans) at modest weights with generous line-height, producing a calm, readable surface that trusts content density over chrome.
+Perplexus's interface reads as a warm-paper research desk: an off-white parchment canvas (#faf8f5) with quiet ink-dark text, hairline warm-gray dividers, and a single restrained teal that signals navigation and active states. Components stay compact and low-elevation — soft 16px-radius cards, ghost buttons, pill chips — letting the central search input dominate as the focal artifact. Type uses a custom geometric sans (pplxSans) at modest weights with generous line-height, paired with an editorial serif display identity (Perplexus wordmark), producing a calm, readable surface that trusts content density over chrome.
 
 ## Tokens — Colors
 
@@ -117,7 +117,7 @@ Deep Teal (#016a71) background, white text, 9999px pill radius, weight 500 at 11
 Transparent background, Graphite (#72706b) text, no border, 0px padding, 16px weight 400. Hover transitions color to Ink (#27251e). Centered horizontally above the search area.
 
 ### Sidebar Brand Mark
-**Role:** Perplexity icon at top of left rail
+**Role:** Perplexus icon at top of left rail
 
 Ink (#27251e) filled icon, no background, 16px box. Acts as visual anchor for the sidebar.
 
@@ -165,7 +165,7 @@ No photography, illustration, or product screenshots. The interface is pure UI o
 
 ## Layout
 
-Two-pane application layout: a fixed left sidebar (~260px wide) containing nav items, brand mark, and user sign-in, paired with a centered main content column capped at 900px max-width. The main column is vertically sparse — a top category nav row, a large centered "perplexity" wordmark, then the dominant search input (~640px wide), followed by a 2-column suggestion card grid. Generous whitespace between sections (32px+) creates a calm reading rhythm. The sidebar uses a slightly darker parchment tone with subtle separation from the main canvas. Everything is compact-density with 8px element gaps and 16px card padding.
+Two-pane application layout: a fixed left sidebar (~260px wide) containing nav items, brand mark, and user sign-in, paired with a centered main content column capped at 900px max-width. The main column is vertically sparse — a top category nav row, a large centered "perplexus" wordmark, then the dominant search input (~640px wide), followed by a 2-column suggestion card grid. Generous whitespace between sections (32px+) creates a calm reading rhythm. The sidebar uses a slightly darker parchment tone with subtle separation from the main canvas. Everything is compact-density with 8px element gaps and 16px card padding.
 
 ## Agent Prompt Guide
 

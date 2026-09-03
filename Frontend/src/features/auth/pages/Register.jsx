@@ -3,25 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { useAuth } from "../hook/useAuth";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
-
-const PerplexityIcon = ({ size = 22, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M12 2V22M12 12L20 4M12 12L4 4M12 12L20 20M12 12L4 20M2 12H22"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import { PerplexusIcon } from "../../../components/PerplexusLogo.jsx";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -101,11 +83,14 @@ export default function Register() {
         <div className="bg-[#fdfbfa] border border-[#d1d1cd] rounded-[16px] p-6 sm:p-8 card-subtle-shadow">
           {/* Logo Section */}
           <div className="flex items-center gap-2.5 mb-6">
-            <div className="w-4 h-4 text-[#27251e] flex items-center justify-center">
-              <PerplexityIcon size={16} />
+            <div className="w-5 h-5 text-[#27251e] flex items-center justify-center">
+              <PerplexusIcon size={18} />
             </div>
-            <span className="text-[19px] font-normal tracking-tight text-[#27251e]">
-              perplexity
+            <span
+              className="text-[20px] font-medium tracking-tight text-[#27251e] leading-none"
+              style={{ fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif" }}
+            >
+              Perplexus
             </span>
           </div>
 

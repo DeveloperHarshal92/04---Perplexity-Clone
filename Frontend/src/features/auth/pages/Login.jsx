@@ -2,25 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router";
 import { useAuth } from "../hook/useAuth";
 import { useSelector } from "react-redux";
-
-const PerplexityIcon = ({ size = 22, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M12 2V22M12 12L20 4M12 12L4 4M12 12L20 20M12 12L4 20M2 12H22"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import { PerplexusIcon } from "../../../components/PerplexusLogo.jsx";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -61,11 +43,14 @@ export default function Login() {
         <div className="bg-[#fdfbfa] border border-[#d1d1cd] rounded-[16px] p-6 sm:p-8 card-subtle-shadow">
           {/* Logo Section */}
           <div className="flex items-center gap-2.5 mb-6">
-            <div className="w-4 h-4 text-[#27251e] flex items-center justify-center">
-              <PerplexityIcon size={16} />
+            <div className="w-5 h-5 text-[#27251e] flex items-center justify-center">
+              <PerplexusIcon size={18} />
             </div>
-            <span className="text-[19px] font-normal tracking-tight text-[#27251e]">
-              perplexity
+            <span
+              className="text-[20px] font-medium tracking-tight text-[#27251e] leading-none"
+              style={{ fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif" }}
+            >
+              Perplexus
             </span>
           </div>
 
@@ -173,7 +158,7 @@ export default function Login() {
           {/* Footer */}
           <footer className="mt-6 text-center">
             <p className="text-[13px] text-[#72706b]">
-              New to Perplexity?
+              New to Perplexus?
               <Link
                 className="text-[#016a71] font-medium ml-1.5 hover:underline"
                 to="/register"

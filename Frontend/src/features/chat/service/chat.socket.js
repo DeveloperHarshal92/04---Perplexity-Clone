@@ -1,7 +1,15 @@
 import { io } from "socket.io-client";
 
+const SOCKET_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  (import.meta.env.DEV
+    ? "http://localhost:3000"
+    : typeof window !== "undefined"
+      ? window.location.origin
+      : "https://perplexus.onrender.com");
+
 export const initializeSocketConnection = () => {
-  const socket = io("http://localhost:3000", {
+  const socket = io(SOCKET_URL, {
     withCredentials: true,
   });
 

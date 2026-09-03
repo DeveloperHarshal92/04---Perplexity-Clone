@@ -2,10 +2,17 @@ import { Server } from "socket.io";
 
 let io;
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://perplexus.onrender.com",
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []),
+];
+
 export function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:5173",
+      origin: allowedOrigins,
       credentials: true,
     },
   });

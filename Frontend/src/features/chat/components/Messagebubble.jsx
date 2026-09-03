@@ -4,25 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useTypewriter } from "../hooks/useTypewriter";
 import toast from "react-hot-toast";
-
-const PerplexityIcon = ({ size = 16, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M12 2V22M12 12L20 4M12 12L4 4M12 12L20 20M12 12L4 20M2 12H22"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import { PerplexusIcon } from "../../../components/PerplexusLogo.jsx";
 
 const MessageBubble = ({ message, index, isLatest = false, onRetry }) => {
   const [copied, setCopied] = useState(false);
@@ -37,7 +19,7 @@ const MessageBubble = ({ message, index, isLatest = false, onRetry }) => {
     if (!message.content) return;
     navigator.clipboard.writeText(message.content);
     setCopied(true);
-    toast.success("Answer copied to clipboard");
+    toast.success("Perplexus answer copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -56,16 +38,19 @@ const MessageBubble = ({ message, index, isLatest = false, onRetry }) => {
       className="flex flex-col items-start w-full group py-2"
     >
       <div className="w-full text-[#27251e] space-y-4">
-        {/* Header: Perplexity Answer */}
+        {/* Header: Perplexus Answer */}
         <div className="flex items-center justify-between border-b border-[#d1d1cd]/50 pb-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-[#27251e] text-[#faf8f5] flex items-center justify-center">
-              <PerplexityIcon size={13} />
+            <div className="w-6 h-6 rounded-[6px] bg-[#27251e] text-[#faf8f5] flex items-center justify-center">
+              <PerplexusIcon size={14} color="#faf8f5" />
             </div>
-            <span className="text-[15px] font-medium text-[#27251e] tracking-tight">
-              Answer
+            <span
+              className="text-[15px] font-medium text-[#27251e] tracking-tight"
+              style={{ fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif" }}
+            >
+              Perplexus Answer
             </span>
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#016a71]/10 text-[#016a71]">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-[#016a71]/10 text-[#016a71] border border-[#016a71]/20">
               Verified
             </span>
           </div>

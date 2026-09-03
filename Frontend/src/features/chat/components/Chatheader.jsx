@@ -1,5 +1,6 @@
 import React from "react";
 import toast from "react-hot-toast";
+import { PerplexusIcon } from "../../../components/PerplexusLogo.jsx";
 
 const ChatHeader = ({ title, isLoading, onToggleSidebar }) => {
   const handleShare = () => {
@@ -29,7 +30,15 @@ const ChatHeader = ({ title, isLoading, onToggleSidebar }) => {
             {formattedTitle}
           </span>
         ) : (
-          <div className="w-4" />
+          <div className="flex items-center gap-1.5 md:hidden">
+            <PerplexusIcon size={16} />
+            <span
+              className="text-[15px] font-medium tracking-tight text-[#27251e]"
+              style={{ fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif" }}
+            >
+              Perplexus
+            </span>
+          </div>
         )}
       </div>
 

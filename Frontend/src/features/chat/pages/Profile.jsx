@@ -18,25 +18,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../auth/hook/useAuth";
 import toast from "react-hot-toast";
-
-const PerplexityIcon = ({ size = 16, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M12 2V22M12 12L20 4M12 12L4 4M12 12L20 20M12 12L4 20M2 12H22"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import { PerplexusIcon } from "../../../components/PerplexusLogo.jsx";
 
 const StatTile = ({ value, label, icon: Icon, delay = 0 }) => (
   <motion.div
@@ -141,11 +123,14 @@ const Profile = () => {
         </button>
 
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 text-[#27251e] flex items-center justify-center">
-            <PerplexityIcon size={16} />
+          <div className="w-5 h-5 text-[#27251e] flex items-center justify-center">
+            <PerplexusIcon size={18} />
           </div>
-          <span className="font-normal text-[15px] tracking-tight text-[#27251e]">
-            perplexity
+          <span
+            className="font-medium text-[16px] tracking-tight text-[#27251e]"
+            style={{ fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif" }}
+          >
+            Perplexus
           </span>
         </div>
 
@@ -163,14 +148,14 @@ const Profile = () => {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2.5">
               <h1 className="text-[22px] font-normal text-[#27251e] tracking-tight">
-                {user?.username || "Researcher Account"}
+                {user?.username || "Perplexus Researcher"}
               </h1>
               <span className="px-2.5 py-0.5 rounded-full bg-[#016a71] text-white text-[11px] font-mono font-medium">
                 Verified
               </span>
             </div>
             <p className="text-[13px] text-[#72706b] font-normal">
-              {user?.email || "Academic workspace"}
+              {user?.email || "Perplexus Academic Workspace"}
             </p>
           </div>
         </div>

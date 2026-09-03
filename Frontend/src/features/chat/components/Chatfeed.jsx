@@ -1,25 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import MessageBubble from "./Messagebubble.jsx";
-
-const PerplexityIcon = ({ size = 32, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M12 2V22M12 12L20 4M12 12L4 4M12 12L20 20M12 12L4 20M2 12H22"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import { PerplexusIcon } from "../../../components/PerplexusLogo.jsx";
 
 const TopNavLinks = ({ activeCategory, onSelectCategory }) => {
   const categories = ["Discover", "Finance", "Health", "Academic", "Patents"];
@@ -177,12 +159,15 @@ const EmptyState = ({ onSuggestedPrompt }) => {
         />
 
         {/* Brand Icon & Wordmark */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-[12px] bg-[#27251e] text-[#faf8f5] flex items-center justify-center shadow-xs">
-            <PerplexityIcon size={22} />
+        <div className="flex items-center gap-3.5 mb-5">
+          <div className="w-11 h-11 rounded-[12px] bg-[#27251e] text-[#faf8f5] flex items-center justify-center shadow-xs">
+            <PerplexusIcon size={24} color="#faf8f5" />
           </div>
-          <span className="text-[28px] font-normal tracking-tight text-[#27251e]">
-            perplexity
+          <span
+            className="text-[32px] md:text-[36px] font-medium tracking-tight text-[#27251e] leading-none"
+            style={{ fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif" }}
+          >
+            Perplexus
           </span>
         </div>
 
@@ -191,7 +176,7 @@ const EmptyState = ({ onSuggestedPrompt }) => {
           Where knowledge begins.
         </h1>
         <p className="text-[14px] md:text-[15px] text-[#72706b] max-w-[520px] mb-8 leading-relaxed font-normal">
-          Ask questions, research papers, explore citations, and analyze complex topics with verified sources.
+          Ask questions, research papers, explore citations, and analyze complex topics with verified Perplexus intelligence.
         </p>
 
         {/* Suggestion Cards 2-Column Gapless Grid */}

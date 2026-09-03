@@ -14,6 +14,7 @@
   /* Typography */
   --font-pplxsans: 'Geist', 'pplxSans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-pplxmono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-editorial: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
 
   /* Typography Scale */
   --text-caption: 11px;

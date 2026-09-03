@@ -1,25 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router";
 import { useSelector } from "react-redux";
-
-const PerplexityIcon = ({ size = 16, className = "" }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      d="M12 2V22M12 12L20 4M12 12L4 4M12 12L20 20M12 12L4 20M2 12H22"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
+import { PerplexusIcon } from "../../../components/PerplexusLogo";
 
 const formatTitle = (title) => {
   if (!title) return "New Thread";
@@ -95,7 +77,7 @@ const Sidebar = ({
     <aside
       className={`fixed left-0 top-0 bottom-0 z-40 ${isOpen ? "flex" : "hidden"} md:flex flex-col w-[260px] bg-[#f6f4f0] border-r border-[#d1d1cd] p-3 select-none transition-all duration-200`}
     >
-      {/* Brand Header: 16px box, Ink icon, no background container per DESIGN.md */}
+      {/* Brand Header: Perplexus Monogram & Editorial Serif Wordmark */}
       <div className="flex items-center justify-between px-2 pt-1.5 pb-3">
         <button
           type="button"
@@ -103,13 +85,16 @@ const Sidebar = ({
             onNewChat();
             navigate("/");
           }}
-          className="flex items-center gap-2.5 text-[#27251e] hover:opacity-85 transition-opacity cursor-pointer"
+          className="flex items-center gap-2 text-[#27251e] hover:opacity-85 transition-opacity cursor-pointer"
         >
-          <div className="w-4 h-4 text-[#27251e] flex items-center justify-center">
-            <PerplexityIcon size={16} />
+          <div className="w-5 h-5 text-[#27251e] flex items-center justify-center">
+            <PerplexusIcon size={18} />
           </div>
-          <span className="text-[17px] font-normal tracking-tight text-[#27251e]">
-            perplexity
+          <span
+            className="text-[18px] font-medium tracking-tight text-[#27251e] leading-none"
+            style={{ fontFamily: "'Playfair Display', 'Cormorant Garamond', Georgia, serif" }}
+          >
+            Perplexus
           </span>
         </button>
 

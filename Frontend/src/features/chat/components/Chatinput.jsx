@@ -61,7 +61,7 @@ const FileChip = ({ file, onRemove }) => {
 };
 
 const availableModels = [
-  { id: "sonar-default", name: "Default (Sonar)", provider: "Perplexity", desc: "Fast, accurate web intelligence", badge: "DEFAULT" },
+  { id: "sonar-default", name: "Default (Sonar)", provider: "Perplexus", desc: "Fast, accurate web intelligence", badge: "DEFAULT" },
   { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet", provider: "Anthropic", desc: "Advanced reasoning, coding & analysis", badge: "POPULAR" },
   { id: "gpt-4o", name: "GPT-4o", provider: "OpenAI", desc: "High speed multimodal knowledge" },
   { id: "o3-mini", name: "o3-mini", provider: "OpenAI", desc: "Deep STEM, mathematics & logic reasoning", badge: "REASONING" },
@@ -425,7 +425,7 @@ const ChatInput = ({
               onKeyDown={handleKeyDown}
               disabled={isLoading}
               className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-[#27251e] placeholder:text-[#92918b] text-[15px] leading-relaxed py-1.5 resize-none max-h-[180px] min-h-[42px] disabled:opacity-50" 
-              placeholder="Ask anything or search..." 
+              placeholder="Ask Perplexus anything or research..." 
               rows="1"
             />
 

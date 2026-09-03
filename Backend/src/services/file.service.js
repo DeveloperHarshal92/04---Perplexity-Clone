@@ -19,7 +19,7 @@ export const processFile = async (file) => {
     const uploaded = await imagekit.upload({
       file: buffer,
       fileName: originalname,
-      folder: "/Perplexity/images/",
+      folder: "/Perplexus/images/",
       useUniqueFileName: true,
     });
 

@@ -2,6 +2,13 @@ import userModel from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../services/mail.service.js";
 
+const BASE_URL =
+  process.env.BASE_URL ||
+  process.env.CLIENT_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://perplexus.onrender.com"
+    : "http://localhost:3000");
+
 export async function register(req, res) {
   const { username, email, password } = req.body;
 
@@ -33,14 +40,14 @@ export async function register(req, res) {
 
   await sendEmail({
     to: email,
-    subject: "Welcome to Perplexity",
+    subject: "Welcome to Perplexus",
     html: `
      <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
        <div style="max-width:600px; margin:auto; background:#ffffff; padding:30px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.05);">
-          <h2 style="color:#333;">Welcome to Perplexity, ${username} 👋</h2>
+          <h2 style="color:#333;">Welcome to Perplexus, ${username} 👋</h2>
 
           <p style="color:#555; line-height:1.6;">
-            Thank you for registering with <strong>Perplexity</strong>.  
+            Thank you for registering with <strong>Perplexus</strong>.  
             We're excited to have you on board.
           </p>
 
@@ -50,9 +57,9 @@ export async function register(req, res) {
 
           <div style="text-align:center; margin:30px 0;">
             <a 
-              href="http://localhost:3000/api/auth/verify-email?token=${emailVerificationToken}"
+              href="${BASE_URL}/api/auth/verify-email?token=${emailVerificationToken}"
               style="
-                background:#4f46e5;
+                background:#016a71;
                 color:white;
                 padding:12px 24px;
                 text-decoration:none;
@@ -72,7 +79,7 @@ export async function register(req, res) {
 
           <p style="color:#999; font-size:13px;">
             Best regards,<br>
-            <strong>Team Perplexity</strong>
+            <strong>Team Perplexus</strong>
           </p>
 
         </div>
@@ -111,7 +118,7 @@ export async function verifyEmail(req, res) {
       return res.send(`
         <h2>⚠️ Already Verified</h2>
         <p>Your email is already verified.</p>
-        <a href="http://localhost:3000/login">Go to Login</a>
+        <a href="${BASE_URL}/login">Go to Login</a>
       `);
     }
 
@@ -181,14 +188,14 @@ button:hover{
 
   <p>
     Your email has been successfully verified.
-    You can now start using <strong>Perplexity</strong>.
+    You can now start using <strong>Perplexus</strong>.
   </p>
 
   <p>
     Thank you for joining us 🚀
   </p>
 
-  <button onclick="window.location.href='http://localhost:3000/login'">
+  <button onclick="window.location.href='${BASE_URL}/login'">
     Go to Login
   </button>
 
@@ -318,7 +325,7 @@ export async function resendVerificationEmail(req, res) {
 
     <p style="color:#555; line-height:1.6;">
       Looks like you requested a new verification email for your 
-      <strong>Perplexity</strong> account.
+      <strong>Perplexus</strong> account.
     </p>
 
     <p style="color:#555; line-height:1.6;">
@@ -327,9 +334,9 @@ export async function resendVerificationEmail(req, res) {
 
     <div style="text-align:center; margin:30px 0;">
       <a 
-        href="http://localhost:3000/api/auth/verify-email?token=${token}"
+        href="${BASE_URL}/api/auth/verify-email?token=${token}"
         style="
-          background:#4f46e5;
+          background:#016a71;
           color:white;
           padding:12px 24px;
           text-decoration:none;
@@ -349,7 +356,7 @@ export async function resendVerificationEmail(req, res) {
 
     <p style="color:#999; font-size:13px;">
       Best regards,<br>
-      <strong>Team Perplexity</strong>
+      <strong>Team Perplexus</strong>
     </p>
 
   </div>
@@ -359,7 +366,7 @@ export async function resendVerificationEmail(req, res) {
   try {
     await sendEmail({
       to: email,
-      subject: "Resend Verification - Perplexity",
+      subject: "Resend Verification - Perplexus",
       html: html,
     });
 
