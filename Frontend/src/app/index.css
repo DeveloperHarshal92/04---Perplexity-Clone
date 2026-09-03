@@ -12,7 +12,7 @@
   --color-deep-teal: #016a71;
 
   /* Typography */
-  --font-pplxsans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-pplxsans: 'Geist', 'pplxSans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-pplxmono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
   /* Typography Scale */
@@ -58,6 +58,9 @@
   --surface-card-surface: #fdfbfa;
   --surface-active-nav: #016a71;
   --surface-button-fill: #27251e;
+
+  /* Motion */
+  --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme {
@@ -70,7 +73,7 @@
   --color-pure-black: #000000;
   --color-deep-teal: #016a71;
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Geist', 'pplxSans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --radius-cards: 16px;
@@ -84,6 +87,7 @@ body {
   color: #27251e;
   font-family: var(--font-pplxsans);
   font-weight: 400;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0;

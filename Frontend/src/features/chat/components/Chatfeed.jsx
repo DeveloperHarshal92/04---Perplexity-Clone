@@ -21,11 +21,33 @@ const PerplexityIcon = ({ size = 32, className = "" }) => (
   </svg>
 );
 
+const TopNavLinks = ({ activeCategory, onSelectCategory }) => {
+  const categories = ["Discover", "Finance", "Health", "Academic", "Patents"];
+  return (
+    <nav className="flex items-center justify-center flex-wrap gap-6 mb-8 select-none">
+      {categories.map((cat) => (
+        <button
+          key={cat}
+          type="button"
+          onClick={() => onSelectCategory?.(cat)}
+          className={`text-[15px] font-normal transition-colors cursor-pointer bg-transparent border-0 p-0 ${
+            activeCategory === cat
+              ? "text-[#27251e] underline underline-offset-8 decoration-[#016a71]"
+              : "text-[#72706b] hover:text-[#27251e]"
+          }`}
+        >
+          {cat}
+        </button>
+      ))}
+    </nav>
+  );
+};
+
 const SuggestionCard = ({ icon, title, description, badge, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="bg-[#fdfbfa] border border-[#d1d1cd] p-4 rounded-[16px] text-left hover:bg-[#f5f3ee] hover:border-[#92918b]/60 transition-all duration-150 card-subtle-shadow flex flex-col justify-between group cursor-pointer"
+    className="bg-[#fdfbfa] border border-[#d1d1cd] p-4 rounded-[16px] text-left hover:bg-[#f5f3ee] hover:border-[#92918b]/60 transition-all duration-150 card-subtle-shadow flex flex-col justify-between group cursor-pointer active:scale-[0.99]"
   >
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -38,10 +60,10 @@ const SuggestionCard = ({ icon, title, description, badge, onClick }) => (
           </span>
         )}
       </div>
-      <h4 className="text-[15px] font-medium text-[#27251e] mb-1 group-hover:text-[#016a71] transition-colors">
+      <h3 className="text-[15px] font-normal text-[#27251e] mb-1 group-hover:text-[#016a71] transition-colors">
         {title}
-      </h4>
-      <p className="text-[13px] text-[#72706b] leading-relaxed">
+      </h3>
+      <p className="text-[13px] text-[#72706b] leading-relaxed font-normal">
         {description}
       </p>
     </div>
@@ -49,70 +71,131 @@ const SuggestionCard = ({ icon, title, description, badge, onClick }) => (
 );
 
 const EmptyState = ({ onSuggestedPrompt }) => {
-  const suggestions = [
-    {
-      icon: "travel_explore",
-      title: "Academic synthesis",
-      description:
-        "Compare recent breakthroughs in quantum computing and error mitigation.",
-      prompt:
-        "Compare recent breakthroughs in quantum computing and error mitigation.",
-      badge: "NEW",
-    },
-    {
-      icon: "analytics",
-      title: "Market overview",
-      description:
-        "Analyze semiconductor supply chains and global foundry capacity.",
-      prompt:
-        "Analyze semiconductor supply chains and global foundry capacity.",
-    },
-    {
-      icon: "code",
-      title: "Architecture design",
-      description:
-        "Explain distributed consensus algorithms like Raft versus Paxos.",
-      prompt:
-        "Explain distributed consensus algorithms like Raft versus Paxos.",
-    },
-    {
-      icon: "menu_book",
-      title: "Literature analysis",
-      description:
-        "Trace the evolution of magical realism in twentieth century literature.",
-      prompt:
-        "Trace the evolution of magical realism in twentieth century literature.",
-    },
-  ];
+  const [activeCategory, setActiveCategory] = React.useState("Discover");
+
+  const categorySuggestions = {
+    Discover: [
+      {
+        icon: "travel_explore",
+        title: "Academic synthesis",
+        description: "Compare breakthroughs in quantum computing and error mitigation techniques.",
+        prompt: "Compare recent breakthroughs in quantum computing and error mitigation techniques.",
+        badge: "NEW",
+      },
+      {
+        icon: "analytics",
+        title: "Market overview",
+        description: "Analyze semiconductor supply chains and global foundry manufacturing capacity.",
+        prompt: "Analyze semiconductor supply chains and global foundry manufacturing capacity.",
+      },
+      {
+        icon: "code",
+        title: "Architecture design",
+        description: "Explain distributed consensus algorithms like Raft versus Paxos with trade-offs.",
+        prompt: "Explain distributed consensus algorithms like Raft versus Paxos with trade-offs.",
+      },
+      {
+        icon: "menu_book",
+        title: "Literature analysis",
+        description: "Trace the historical evolution of magical realism in twentieth century literature.",
+        prompt: "Trace the evolution of magical realism in twentieth century literature.",
+      },
+    ],
+    Finance: [
+      {
+        icon: "trending_up",
+        title: "Macro interest rates",
+        description: "Summary of central bank balance sheet unwinding and yield curve inversions.",
+        prompt: "Summarize global central bank balance sheet trends and bond yield curve inversions.",
+      },
+      {
+        icon: "account_balance",
+        title: "Venture allocation",
+        description: "Examine seed and Series A valuation benchmarks across foundation model startups.",
+        prompt: "Examine seed and Series A valuation benchmarks across AI foundation model startups.",
+      },
+    ],
+    Health: [
+      {
+        icon: "biotech",
+        title: "CRISPR gene therapy",
+        description: "Clinical status of in-vivo base editing therapies for cardiovascular disease.",
+        prompt: "What is the current clinical status of in-vivo base editing therapies for cardiovascular disease?",
+        badge: "NEW",
+      },
+      {
+        icon: "medical_services",
+        title: "Longevity biomarkers",
+        description: "Evaluation of epigenetic clocks and metabolic markers of cellular senescence.",
+        prompt: "Evaluate the validity of epigenetic clocks and metabolic markers of cellular senescence.",
+      },
+    ],
+    Academic: [
+      {
+        icon: "school",
+        title: "Transformer scaling laws",
+        description: "Review Chinchilla versus Kaplan compute-optimal parameter ratios.",
+        prompt: "Review the key differences between Chinchilla and Kaplan compute-optimal scaling laws.",
+      },
+      {
+        icon: "science",
+        title: "Superconductivity research",
+        description: "Investigate high-pressure hydrides and ambient temperature superconductor claims.",
+        prompt: "Investigate high-pressure hydrides and ambient temperature superconductor claims.",
+      },
+    ],
+    Patents: [
+      {
+        icon: "policy",
+        title: "Solid-state battery IP",
+        description: "Analyze patent filings in ceramic and sulfide-based solid electrolyte cells.",
+        prompt: "Analyze recent patent filings in ceramic and sulfide-based solid electrolyte battery technology.",
+      },
+      {
+        icon: "gavel",
+        title: "AI training copyright",
+        description: "Precedents on fair use in generative training datasets across jurisdictions.",
+        prompt: "Review recent legal precedents on fair use in AI training datasets across global jurisdictions.",
+      },
+    ],
+  };
+
+  const suggestions = categorySuggestions[activeCategory] || categorySuggestions.Discover;
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.3 }}
       className="flex-1 flex flex-col items-center justify-center p-4 max-w-[900px] mx-auto w-full my-auto select-none"
     >
       <div className="w-full max-w-[760px] flex flex-col items-center text-center">
+        {/* Top Nav Category Links per DESIGN.md */}
+        <TopNavLinks
+          activeCategory={activeCategory}
+          onSelectCategory={setActiveCategory}
+        />
+
         {/* Brand Icon & Wordmark */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#27251e] text-[#faf8f5] flex items-center justify-center shadow-sm">
-            <PerplexityIcon size={26} />
+          <div className="w-10 h-10 rounded-[12px] bg-[#27251e] text-[#faf8f5] flex items-center justify-center shadow-xs">
+            <PerplexityIcon size={22} />
           </div>
-          <span className="text-[32px] font-medium tracking-tight text-[#27251e]">
+          <span className="text-[28px] font-normal tracking-tight text-[#27251e]">
             perplexity
           </span>
         </div>
 
-        <h1 className="text-[26px] md:text-[30px] font-medium text-[#27251e] tracking-tight mb-2">
+        {/* H1 bounded to max 2 lines with clamp */}
+        <h1 className="text-[24px] md:text-[28px] font-normal text-[#27251e] tracking-tight mb-2 max-w-2xl leading-tight">
           Where knowledge begins.
         </h1>
-        <p className="text-[15px] text-[#72706b] max-w-[500px] mb-8 leading-relaxed">
-          Ask questions, research papers, explore citations, and analyze complex
-          topics with verified sources.
+        <p className="text-[14px] md:text-[15px] text-[#72706b] max-w-[520px] mb-8 leading-relaxed font-normal">
+          Ask questions, research papers, explore citations, and analyze complex topics with verified sources.
         </p>
 
-        {/* Suggestion Cards 2-Column Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+        {/* Suggestion Cards 2-Column Gapless Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full grid-flow-dense">
           {suggestions.map((s) => (
             <SuggestionCard
               key={s.title}
@@ -247,22 +330,23 @@ const ChatFeed = ({ messages, isLoading, onSuggestedPrompt }) => {
     <div className="flex-1 overflow-y-auto px-4 md:px-6 pt-6 pb-12 flex flex-col items-center custom-scrollbar w-full">
       <div className="w-full max-w-[900px] flex-1 flex flex-col space-y-6">
         {messages.length === 0 && !isLoading ? (
-          <EmptyState onSuggestedPrompt={onSuggestedPrompt} />
+          <EmptyState key="empty-state-view" onSuggestedPrompt={onSuggestedPrompt} />
         ) : (
-          <div className="space-y-6 py-2">
+          <div key="messages-feed-view" className="space-y-6 py-2">
             <AnimatePresence initial={false}>
-              {messages.map((message, index) =>
-                message.role === "user" ? (
-                  <UserMessage key={index} message={message} index={index} />
+              {messages.map((message, index) => {
+                const uniqueId = message._id || message.id || `${message.role}-${index}-${message.content?.slice(0, 10)}`;
+                return message.role === "user" ? (
+                  <UserMessage key={`user-msg-${uniqueId}`} message={message} index={index} />
                 ) : (
                   <MessageBubble
-                    key={index}
+                    key={`ai-msg-${uniqueId}`}
                     message={message}
                     index={index}
                     isLatest={index === lastAiIndex}
                   />
-                ),
-              )}
+                );
+              })}
             </AnimatePresence>
           </div>
         )}

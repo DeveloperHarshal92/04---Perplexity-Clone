@@ -128,17 +128,17 @@ const MessageBubble = ({ message, index, isLatest = false, onRetry }) => {
                 <em className="italic text-[#72706b]">{children}</em>
               ),
               h1: ({ children }) => (
-                <h1 className="text-[22px] font-medium text-[#27251e] pt-3 pb-1 border-b border-[#d1d1cd]/60 mb-2">
+                <h1 className="text-[20px] font-normal text-[#27251e] pt-3 pb-1 border-b border-[#d1d1cd] mb-2 tracking-tight">
                   {children}
                 </h1>
               ),
               h2: ({ children }) => (
-                <h2 className="text-[18px] font-medium text-[#27251e] pt-2 mb-1.5">
+                <h2 className="text-[17px] font-normal text-[#27251e] pt-2 mb-1.5 tracking-tight">
                   {children}
                 </h2>
               ),
               h3: ({ children }) => (
-                <h3 className="text-[16px] font-medium text-[#27251e] pt-1 mb-1">
+                <h3 className="text-[15px] font-medium text-[#27251e] pt-1 mb-1 tracking-tight">
                   {children}
                 </h3>
               ),
@@ -148,21 +148,21 @@ const MessageBubble = ({ message, index, isLatest = false, onRetry }) => {
 
                 if (inline) {
                   return (
-                    <code className="px-1.5 py-0.5 rounded text-[13px] font-mono bg-[#f0ede6] text-[#27251e] border border-[#d1d1cd]">
+                    <code className="px-1.5 py-0.5 rounded-[4px] text-[13px] font-mono bg-[#f0ede6] text-[#27251e] border border-[#d1d1cd]">
                       {children}
                     </code>
                   );
                 }
 
                 return (
-                  <div className="relative group/code my-4 rounded-xl overflow-hidden border border-[#d1d1cd] bg-[#fdfbfa] card-subtle-shadow">
-                    <div className="flex items-center justify-between px-3 py-1.5 bg-[#f0ede6] border-b border-[#d1d1cd]">
+                  <div className="relative group/code my-4 rounded-[12px] overflow-hidden border border-[#d1d1cd] bg-[#fdfbfa] card-subtle-shadow">
+                    <div className="flex items-center justify-between px-3.5 py-1.5 bg-[#f0ede6] border-b border-[#d1d1cd]">
                       <span className="text-[11px] font-mono uppercase tracking-wider text-[#72706b]">
                         {language || "Code"}
                       </span>
                       <button
                         type="button"
-                        className="flex items-center gap-1 text-[11px] text-[#72706b] hover:text-[#27251e] transition-colors"
+                        className="flex items-center gap-1 text-[11px] text-[#72706b] hover:text-[#27251e] transition-colors cursor-pointer"
                         onClick={() => {
                           navigator.clipboard.writeText(
                             String(children).replace(/\n$/, ""),
@@ -183,25 +183,25 @@ const MessageBubble = ({ message, index, isLatest = false, onRetry }) => {
                 );
               },
               blockquote: ({ children }) => (
-                <blockquote className="pl-3.5 my-3 italic border-l-2 border-[#016a71] text-[#72706b] bg-[#f0ede6]/40 py-1 rounded-r-md">
+                <blockquote className="pl-3.5 my-3 italic border-l-2 border-[#016a71] text-[#72706b] bg-[#f0ede6]/40 py-1 rounded-r-[6px]">
                   {children}
                 </blockquote>
               ),
               hr: () => <hr className="my-4 border-[#d1d1cd]" />,
               table: ({ children }) => (
-                <div className="overflow-x-auto my-3 border border-[#d1d1cd] rounded-xl bg-[#fdfbfa]">
+                <div className="overflow-x-auto my-3 border border-[#d1d1cd] rounded-[12px] bg-[#fdfbfa]">
                   <table className="w-full text-[13px] border-collapse">
                     {children}
                   </table>
                 </div>
               ),
               th: ({ children }) => (
-                <th className="text-left px-3 py-2 font-medium text-[12px] uppercase tracking-wider border-b border-[#d1d1cd] bg-[#f0ede6] text-[#27251e]">
+                <th className="text-left px-3.5 py-2 font-medium text-[12px] uppercase tracking-wider border-b border-[#d1d1cd] bg-[#f0ede6] text-[#27251e]">
                   {children}
                 </th>
               ),
               td: ({ children }) => (
-                <td className="px-3 py-2 border-b border-[#d1d1cd]/50 text-[#27251e] last:border-0">
+                <td className="px-3.5 py-2 border-b border-[#d1d1cd]/50 text-[#27251e] last:border-0 font-normal">
                   {children}
                 </td>
               ),
@@ -216,22 +216,24 @@ const MessageBubble = ({ message, index, isLatest = false, onRetry }) => {
           )}
         </div>
 
-        {/* Prose Bottom Actions */}
+        {/* Prose Bottom Ghost Actions (6px radius per DESIGN.md) */}
         {isDone && (
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-2 pt-2">
             <button
+              type="button"
               onClick={handleCopy}
-              className="flex items-center gap-1.5 text-[#72706b] hover:text-[#27251e] text-[12px] px-2.5 py-1 rounded-lg border border-[#d1d1cd] hover:bg-[#f0ede6] transition-colors"
+              className="flex items-center gap-1.5 text-[#72706b] hover:text-[#27251e] text-[12px] px-3 py-1.5 rounded-[6px] border border-[#d1d1cd] bg-transparent hover:bg-[#f0ede6] active:scale-[0.98] transition-all cursor-pointer"
               title="Copy response"
             >
               <span className="material-symbols-outlined text-[15px]">
                 {copied ? "check" : "content_copy"}
               </span>
-              <span>{copied ? "Copied" : "Copy text"}</span>
+              <span>{copied ? "Copied" : "Copy"}</span>
             </button>
             <button
+              type="button"
               onClick={handleShare}
-              className="flex items-center gap-1.5 text-[#72706b] hover:text-[#27251e] text-[12px] px-2.5 py-1 rounded-lg border border-[#d1d1cd] hover:bg-[#f0ede6] transition-colors"
+              className="flex items-center gap-1.5 text-[#72706b] hover:text-[#27251e] text-[12px] px-3 py-1.5 rounded-[6px] border border-[#d1d1cd] bg-transparent hover:bg-[#f0ede6] active:scale-[0.98] transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px]">
                 share
@@ -240,8 +242,9 @@ const MessageBubble = ({ message, index, isLatest = false, onRetry }) => {
             </button>
             {onRetry && (
               <button
+                type="button"
                 onClick={onRetry}
-                className="flex items-center gap-1.5 text-[#72706b] hover:text-[#27251e] text-[12px] px-2.5 py-1 rounded-lg border border-[#d1d1cd] hover:bg-[#f0ede6] transition-colors"
+                className="flex items-center gap-1.5 text-[#72706b] hover:text-[#27251e] text-[12px] px-3 py-1.5 rounded-[6px] border border-[#d1d1cd] bg-transparent hover:bg-[#f0ede6] active:scale-[0.98] transition-all cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[15px]">
                   refresh

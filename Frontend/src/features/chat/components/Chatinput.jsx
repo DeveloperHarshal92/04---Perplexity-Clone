@@ -153,7 +153,7 @@ const ChatInput = ({
 
     recognition.onstart = () => {
       setIsListening(true);
-      toast("Listening...", { icon: "🎙️" });
+      toast.success("Listening for voice query...");
     };
 
     recognition.onresult = (event) => {
@@ -274,7 +274,7 @@ const ChatInput = ({
               if (textareaRef.current) textareaRef.current.style.height = "42px";
             }
           }}
-          className="bg-[#fdfbfa] border border-[#d1d1cd] rounded-[16px] card-subtle-shadow search-glow transition-all duration-200 p-3"
+          className="bg-[#faf8f5] border border-[#d1d1cd] rounded-[12px] card-subtle-shadow search-glow transition-all duration-200 p-3"
         >
           {/* Top Bar: Modes & Model Selector */}
           <div className="flex items-center justify-between mb-2 pb-1 border-b border-[#d1d1cd]/50 relative">

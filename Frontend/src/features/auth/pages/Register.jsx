@@ -86,7 +86,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative p-4 bg-[#faf8f5] text-[#27251e] font-sans selection:bg-[#016a71]/15">
+    <div className="min-h-[100dvh] flex items-center justify-center relative p-4 bg-[#faf8f5] text-[#27251e] font-sans selection:bg-[#016a71]/15">
       {/* Background Ambience */}
       <div
         className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full opacity-30 blur-[130px] pointer-events-none"
@@ -101,20 +101,20 @@ export default function Register() {
         <div className="bg-[#fdfbfa] border border-[#d1d1cd] rounded-[16px] p-6 sm:p-8 card-subtle-shadow">
           {/* Logo Section */}
           <div className="flex items-center gap-2.5 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-[#27251e] text-[#faf8f5] flex items-center justify-center">
-              <PerplexityIcon size={18} />
+            <div className="w-4 h-4 text-[#27251e] flex items-center justify-center">
+              <PerplexityIcon size={16} />
             </div>
-            <span className="text-[20px] font-medium tracking-tight text-[#27251e]">
+            <span className="text-[19px] font-normal tracking-tight text-[#27251e]">
               perplexity
             </span>
           </div>
 
           {/* Header */}
           <header className="mb-6">
-            <h1 className="text-[22px] font-medium text-[#27251e] tracking-tight mb-1">
+            <h1 className="text-[20px] font-normal text-[#27251e] tracking-tight mb-1">
               Create your account
             </h1>
-            <p className="text-[14px] text-[#72706b]">
+            <p className="text-[14px] text-[#72706b] font-normal">
               Start researching and querying with verified knowledge
             </p>
           </header>

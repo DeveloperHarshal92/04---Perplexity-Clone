@@ -14,6 +14,8 @@ const Dashboard = () => {
   const [chatInput, setChatInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
+  const [selectedMode, setSelectedMode] = useState("Search");
+  const [selectedModel, setSelectedModel] = useState(null);
   const activeChatRef = useRef(null);
 
   const chats = useSelector((state) => state.chat.chats);
@@ -108,19 +110,19 @@ const Dashboard = () => {
             border: "1px solid #d1d1cd",
             borderRadius: "12px",
             fontSize: "13px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
-            fontFamily: "'Inter', sans-serif",
+            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.08)",
+            fontFamily: "var(--font-pplxsans)",
           },
         }}
       />
 
-      <div className="bg-[#faf8f5] text-[#27251e] min-h-screen overflow-hidden flex selection:bg-[#016a71]/15">
+      <div className="bg-[#faf8f5] text-[#27251e] min-h-[100dvh] overflow-hidden flex selection:bg-[#016a71]/15">
         <AmbientBackground />
 
         {/* Mobile backdrop */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-30 bg-[#27251e]/30 backdrop-blur-xs md:hidden"
+            className="fixed inset-0 z-30 bg-[#27251e]/20 backdrop-blur-xs md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -135,10 +137,11 @@ const Dashboard = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        <main className="flex-1 flex flex-col h-screen md:ml-[260px] relative z-10 w-full min-w-0 bg-[#faf8f5] transition-all duration-200">
+        <main className="flex-1 flex flex-col h-[100dvh] md:ml-[260px] relative z-10 w-full min-w-0 bg-[#faf8f5] transition-all duration-200">
           <ChatHeader
             title={currentTitle}
             isLoading={isLoading}
+            onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
           />
 
           <ChatFeed
@@ -157,6 +160,9 @@ const Dashboard = () => {
             onFileAttach={handleFileAttach}
             onRemoveFile={handleRemoveFile}
             isLoading={isLoading}
+            selectedMode={selectedMode}
+            onModeChange={setSelectedMode}
+            onModelChange={setSelectedModel}
           />
         </main>
       </div>
